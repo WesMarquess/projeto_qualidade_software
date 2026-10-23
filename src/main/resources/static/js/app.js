@@ -9,6 +9,32 @@
     ACTIVE_RESERVATION_STATUSES,
   } = window.ReservationRules;
 
+  const mockUsers = [
+    {
+      name: "Camila Santos",
+      email: "solicitante@senac.local",
+      password: "solicitante123",
+      role: "solicitante",
+    },
+    {
+      name: "Rafael Lima",
+      email: "responsavel@senac.local",
+      password: "responsavel123",
+      role: "responsavel",
+    },
+    {
+      name: "Mariana Costa",
+      email: "admin@senac.local",
+      password: "admin123",
+      role: "administrador",
+    },
+  ];
+  const allowedProfiles = {
+    solicitante: ["solicitante"],
+    responsavel: ["responsavel"],
+    administrador: ["administrador", "responsavel"],
+  };
+
   const dayOffset = (offset) => {
     const date = new Date();
     date.setDate(date.getDate() + offset);
@@ -19,7 +45,8 @@
   };
 
   const state = {
-    profile: "solicitante",
+    profile: null,
+    currentUser: null,
     applicantView: "rooms",
     roomFilter: "TODAS",
     searchTerm: "",
@@ -50,6 +77,11 @@
   };
 
   const content = document.getElementById("app-content");
+  const loginScreen = document.getElementById("login-screen");
+  const application = document.getElementById("application");
+  const loginForm = document.getElementById("login-form");
+  const loginError = document.getElementById("login-error");
+  const accountName = document.getElementById("account-name");
   const profileLabel = document.getElementById("active-profile-label");
   const pendingCount = document.getElementById("pending-count");
   const todayLabel = document.getElementById("today-label");
@@ -457,16 +489,24 @@
   };
 
   const render = () => {
+    if (!state.currentUser) {
+      return;
+    }
     profileLabel.textContent = profileNames[state.profile];
+    accountName.textContent = state.currentUser.name;
     const pending = state.reservations.filter(
       (reservation) => reservation.status === RESERVATION_STATUS.REQUESTED,
     ).length;
     pendingCount.textContent = String(pending);
     pendingCount.classList.toggle("has-count", pending > 0);
     document.querySelectorAll("[data-profile]").forEach((button) => {
+      const allowed = allowedProfiles[state.currentUser.role].includes(
+        button.dataset.profile,
+      );
+      button.hidden = !allowed;
       const active = button.dataset.profile === state.profile;
       button.classList.toggle("is-active", active);
-      if (active) {
+      if (active && allowed) {
         button.setAttribute("aria-current", "page");
       } else {
         button.removeAttribute("aria-current");
@@ -483,13 +523,52 @@
   };
 
   const setProfile = (profile) => {
-    if (!Object.hasOwn(profileNames, profile)) {
+    if (
+      !state.currentUser ||
+      !allowedProfiles[state.currentUser.role].includes(profile)
+    ) {
       return;
     }
     state.profile = profile;
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  loginForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const formData = new FormData(loginForm);
+    const email = String(formData.get("email")).trim().toLocaleLowerCase("pt-BR");
+    const password = String(formData.get("password"));
+    const user = mockUsers.find(
+      (account) => account.email === email && account.password === password,
+    );
+
+    if (!user) {
+      loginError.textContent = "E-mail ou senha inválidos. Confira os dados e tente novamente.";
+      return;
+    }
+
+    state.currentUser = user;
+    state.profile = user.role === "administrador" ? "administrador" : user.role;
+    loginError.textContent = "";
+    loginScreen.hidden = true;
+    application.hidden = false;
+    render();
+  });
+
+  loginForm.addEventListener("input", () => {
+    loginError.textContent = "";
+  });
+
+  document.getElementById("logout-button").addEventListener("click", () => {
+    state.currentUser = null;
+    state.profile = null;
+    application.hidden = true;
+    loginScreen.hidden = false;
+    loginForm.reset();
+    loginError.textContent = "";
+    document.getElementById("login-email").focus();
+  });
 
   const setDialogDateDefaults = () => {
     document.getElementById("start-date").value = dayOffset(1);
@@ -728,5 +807,4 @@
     year: "numeric",
   }).format(new Date());
 
-  render();
 })();
