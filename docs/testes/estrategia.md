@@ -1,95 +1,117 @@
-# Estrategia de Testes
+# Estratégia de Testes
 
 ## 1. Escopo
 
-Esta estrategia orienta a verificacao do backend atual de reservas e a evolucao dos testes conforme os requisitos do PRD forem implementados. O escopo funcional atual e um recorte de reservas de salas; a matriz abaixo nao considera requisito pendente como comportamento existente.
+Esta estratégia orienta a verificação do backend atual de reservas e a evolução dos testes conforme os requisitos do PRD forem implementados. O escopo funcional atual é um recorte de reservas de salas; a matriz abaixo não considera requisito pendente como comportamento existente.
 
-Estao no escopo de verificacao da API descrita em `docs/openapi.yaml`:
+Estão no escopo de verificação da API descrita em `docs/openapi.yaml`:
 
 - `POST /api/reservas`: solicitar reserva;
 - `GET /api/reservas/{reservaId}` e `GET /api/reservas/solicitante/{solicitanteId}`: consultar reservas;
-- `PUT /api/reservas/{reservaId}/horario`: alterar horario;
+- `PUT /api/reservas/{reservaId}/horario`: alterar horário;
 - `POST /api/reservas/{reservaId}/cancelamento`: cancelar;
-- `POST /api/reservas/{reservaId}/aprovacao` e `POST /api/reservas/{reservaId}/rejeicao`: decidir solicitacao.
+- `POST /api/reservas/{reservaId}/aprovacao` e `POST /api/reservas/{reservaId}/rejeicao`: decidir solicitação.
 
-Os cenarios prioritarios rastreiam RF07 a RF11 e as regras RN01 a RN05, conforme criterio academico. RF07 esta implementado; RF08 a RF11 tem cobertura parcial ou lacunas descritas na matriz da secao 4. RF06 pode ser coberto nos fluxos implementados de solicitacao, alteracao e cancelamento.
+Os cenários prioritários rastreiam RF07 a RF11 e as regras RN01 a RN05, conforme critério acadêmico. RF07 está implementado; RF08 a RF11 têm cobertura parcial ou lacunas descritas na matriz da seção 4. RF06 pode ser coberto nos fluxos implementados de solicitação, alteração e cancelamento.
 
-Ficam fora da validacao funcional da implementacao atual: autenticacao e autorizacao efetivas (RF01-RF02), cadastros e pesquisa geral (RF03-RF05), conflitos de professor/material, classificacao de recursos restritos, manutencao por periodo, validacao de alocacao docente, movimentacao de materiais, auditoria, ciclo completo de estados, relatorios e interface responsiva. Esses itens permanecem requisitos do PRD, mas nao devem ser reportados como aprovados por testes de API que nao os exercitam.
+Ficam fora da validação funcional da implementação atual: autenticação e autorização efetivas (RF01 e RF02), cadastros e pesquisa geral (RF03 a RF05), conflitos de professor e material, classificação de recursos restritos, manutenção por período, validação de alocação docente, movimentação de materiais, auditoria, ciclo completo de estados, relatórios e interface responsiva. Esses itens permanecem requisitos do PRD, mas não devem ser reportados como aprovados por testes de API que não os exercitam.
 
-## 2. Niveis e ferramentas
+## 2. Níveis e ferramentas
 
-| Nivel | Ferramenta | Aplicacao neste projeto |
+| Nível | Ferramenta | Aplicação neste projeto |
 |---|---|---|
-| Unitario | JUnit 5, incluindo `@ParameterizedTest` | Verificar validacao de intervalo e transicoes de `Reserva.aprovar`/`Reserva.rejeitar`; cobrir casos validos, invalidos e limites sem iniciar a aplicacao. Isolar repositorios com doubles de teste. |
-| Integracao | JUnit 5 + Testcontainers com PostgreSQL | Exercitar servico, repositorios, transacoes, consultas de conflito e locks usando o banco real da estrategia. Verificar `ReservaRepository.contarConflitos`, `buscarPorIdComBloqueio` e `SalaRepository.buscarPorIdComBloqueio`. |
-| API caixa-preta | REST-assured | Enviar HTTP pelos endpoints publicados e validar codigos, cabecalhos, corpos e erros definidos no OpenAPI, sem depender da estrutura interna das classes. |
-| E2E | REST-assured + aplicacao completa + PostgreSQL em Testcontainers | Executar jornadas pela API desde a solicitacao ate consulta e, quando aplicavel, alteracao, cancelamento ou decisao, confirmando o estado persistido. Este nivel cobre o fluxo backend; nao implica teste de navegador. |
-| Concorrencia | JUnit 5 + REST-assured + Testcontainers com PostgreSQL | Disparar solicitacoes conflitantes em paralelo para a mesma sala e intervalo; conferir resultado final no banco e evidenciar que nao houve dupla reserva (RF09/RN03). |
-| Carga | Apache JMeter | Medir os fluxos de consulta e solicitacao da API e entregar plano e resultado de carga, como previsto no PRD. Nao ha meta numerica de carga ou latencia definida ainda. |
-| Integracao simulada | WireMock | Quando o escopo de notificacao for confirmado, simular a dependencia HTTP externa e verificar a integracao sem chamar um servico real. RF19 esta pendente e nao ha cliente ou endpoint de notificacao no codigo atual. |
+| Unitário | JUnit 5, incluindo `@ParameterizedTest`, e Mockito | Verificar validação de intervalo e transições de `Reserva.aprovar` e `Reserva.rejeitar`; cobrir casos válidos, inválidos e limites sem iniciar a aplicação. Isolar repositórios com doubles de teste. |
+| Integração | JUnit 5 e Testcontainers com PostgreSQL 16 | Exercitar serviço, repositórios, transações, consultas de conflito e locks usando o banco real da estratégia. Verificar `ReservaRepository.contarConflitos`, `buscarPorIdComBloqueio` e `SalaRepository.buscarPorIdComBloqueio`. |
+| API caixa-preta | REST-assured | Enviar HTTP pelos endpoints publicados e validar códigos, cabeçalhos, corpos e erros definidos no OpenAPI, sem depender da estrutura interna das classes. |
+| E2E | REST-assured, aplicação completa e PostgreSQL em Testcontainers | Executar jornadas pela API, da solicitação até consulta e, quando aplicável, alteração, cancelamento ou decisão, confirmando o estado persistido. Não há teste de navegador enquanto a interface web não chamar a API (hoje ela usa dados locais). |
+| Concorrência | JUnit 5, REST-assured e Testcontainers com PostgreSQL | Disparar solicitações conflitantes em paralelo para a mesma sala e intervalo; conferir resultado final no banco e evidenciar que não houve dupla reserva (RF09 e RN03). |
+| Segurança | JUnit 5 parametrizado, MockMvc ou REST-assured | Matriz perfil × operação (`docs/seguranca/matriz-autorizacao.md`), regras de posse, validação de entrada e respostas de erro sem stack trace, SQL ou nome de classe interna. Depende de RF01 e RF02. |
+| Carga | Apache JMeter | Medir os fluxos de consulta e solicitação da API e entregar plano e resultado de carga. Premissa a validar: 50 usuários concorrentes, 5 minutos, p95 abaixo de 500 ms, erro abaixo de 1%, ambiente local em containers. |
+| Integração simulada | WireMock | Notificação como integração externa simulada via HTTP, disparada ao aprovar, rejeitar ou cancelar. Payload: id da reserva, destinatário, tipo do evento e status. Falha ou timeout da notificação não desfaz a reserva. RF19 está pendente e não há cliente de notificação no código atual. |
 
-Os testes de API devem cobrir os resultados documentados no OpenAPI, incluindo `201` na solicitacao aceita e erros `400`, `403`, `404` ou `409` quando aplicaveis. A lista exata de resultados esperados deve respeitar o contrato e as regras definidas, sem acrescentar codigos ou campos obrigatorios nao documentados.
+Os testes de API devem cobrir os resultados documentados no OpenAPI, incluindo `201` na solicitação aceita e erros `400`, `403`, `404` ou `409` quando aplicáveis. O contrato deve declarar as propriedades obrigatórias da resposta `Reserva` e exemplos de erro para 400, 403, 404 e 409.
 
 ## 3. Caixa-preta, branca e cinza
 
-**Caixa-preta:** usar o OpenAPI como contrato observavel, sem inspecionar chamadas internas. REST-assured deve exercitar, por exemplo, `POST /api/reservas` com intervalo valido e invalido, `GET /api/reservas/{reservaId}` para recurso existente/inexistente e `PUT /api/reservas/{reservaId}/horario` para alteracao permitida ou rejeitada. A resposta deve ser comparada ao contrato publicado. A ausencia atual de autenticacao nao pode ser interpretada como autorizacao validada.
+**Caixa-preta:** usar o OpenAPI como contrato observável, sem inspecionar chamadas internas. REST-assured deve exercitar, por exemplo, `POST /api/reservas` com intervalo válido e inválido, `GET /api/reservas/{reservaId}` para recurso existente e inexistente e `PUT /api/reservas/{reservaId}/horario` para alteração permitida ou rejeitada. A resposta deve ser comparada ao contrato publicado. A ausência atual de autenticação não pode ser interpretada como autorização validada. Casos em `docs/testes/caixa-preta.md`.
 
-**Caixa-branca:** orientar casos por decisoes e ramos reais do codigo. Em `ReservaService`, cobrir `validarIntervalo`, `validarDisponibilidadeDaSala`, `validarAusenciaDeConflito`, verificacao de solicitante e os ramos de aprovador. Em `Reserva`, verificar a transicao de estado e a rejeicao de decisao quando o estado nao e `SOLICITADA`. Em `ApiExceptionHandler`, verificar o mapeamento das excecoes para HTTP. A cobertura estrutural e medida pelo JaCoCo; ela nao substitui a evidencia de requisito.
+**Caixa-branca:** orientar casos por decisões e ramos reais do código, com critério de condição nas expressões compostas. Em `ReservaService`, cobrir `validarIntervalo`, `validarDisponibilidadeDaSala`, `validarAusenciaDeConflito`, verificação de solicitante e os ramos de aprovador. Em `Reserva`, verificar a transição de estado e a rejeição de decisão quando o estado não é `SOLICITADA`. Em `ApiExceptionHandler`, verificar o mapeamento das exceções para HTTP. A cobertura estrutural é medida pelo JaCoCo; ela não substitui a evidência de requisito. Cada regra crítica passa por mutação manual: a regra é quebrada, o teste ligado a ela é executado e deve falhar. Casos em `docs/testes/caixa-branca.md`.
 
-**Caixa-cinza:** combinar conhecimento do desenho interno com observacao externa, sem substituir a API por chamadas diretas ao servico. Usar REST-assured contra a aplicacao conectada a PostgreSQL do Testcontainers, sabendo que `SalaRepository.buscarPorIdComBloqueio` usa lock pessimista e que `ReservaRepository.contarConflitos` aplica a regra de sobreposicao para salas. Esse nivel e essencial para RF09/RN03: um mock ou banco em memoria nao demonstra o comportamento do lock no PostgreSQL.
+**Caixa-cinza:** chamar a aplicação pelo contrato, como um cliente externo, escolhendo os casos a partir do que existe por trás (locks, consultas e estados gravados) e verificando o resultado no banco. Usar REST-assured contra a aplicação conectada ao PostgreSQL do Testcontainers, sabendo que `SalaRepository.buscarPorIdComBloqueio` usa lock pessimista e que `ReservaRepository.contarConflitos` aplica a regra de sobreposição para salas. Esse nível é essencial para RF09 e RN03: um mock ou banco em memória não demonstra o comportamento do lock no PostgreSQL.
 
-As classes de referencia sao [ReservaController](../../src/main/java/br/com/projeto_qualidade_software/projeto/api/ReservaController.java), [ReservaService](../../src/main/java/br/com/projeto_qualidade_software/projeto/services/ReservaService.java), [Reserva](../../src/main/java/br/com/projeto_qualidade_software/projeto/entities/Reserva.java), [ReservaRepository](../../src/main/java/br/com/projeto_qualidade_software/projeto/repositories/ReservaRepository.java), [SalaRepository](../../src/main/java/br/com/projeto_qualidade_software/projeto/repositories/SalaRepository.java) e [ApiExceptionHandler](../../src/main/java/br/com/projeto_qualidade_software/projeto/api/ApiExceptionHandler.java).
+As classes de referência são [ReservaController](../../src/main/java/br/com/projeto_qualidade_software/projeto/api/ReservaController.java), [ReservaService](../../src/main/java/br/com/projeto_qualidade_software/projeto/services/ReservaService.java), [Reserva](../../src/main/java/br/com/projeto_qualidade_software/projeto/entities/Reserva.java), [ReservaRepository](../../src/main/java/br/com/projeto_qualidade_software/projeto/repositories/ReservaRepository.java), [SalaRepository](../../src/main/java/br/com/projeto_qualidade_software/projeto/repositories/SalaRepository.java) e [ApiExceptionHandler](../../src/main/java/br/com/projeto_qualidade_software/projeto/api/ApiExceptionHandler.java).
 
-## 4. Criterios de saida e rastreabilidade critica
+## 4. Critérios de saída e rastreabilidade crítica
 
-Para a suite de verificacao, os criterios academicos de saida sao:
+Para a suíte de verificação, os critérios acadêmicos de saída são:
 
-- cobertura minima de 80% de linhas e 70% de branches no JaCoCo;
-- zero defeito critico em aberto na avaliacao final;
-- 100% dos requisitos criticos RF07 a RF11 registrados na RTM, cada um ligado a cenarios e evidencia/status de execucao;
-- plano e resultado de teste de carga entregues, sem declarar aprovado um limite de desempenho ainda nao definido.
+- cobertura mínima de 80% de linhas e 70% de branches no JaCoCo;
+- zero defeito crítico em aberto na avaliação final, e zero bug ou vulnerabilidade crítica no SonarCloud;
+- 100% dos requisitos críticos RF07 a RF11 registrados na RTM (`docs/rtm.md`), cada um ligado a cenários e evidência ou status de execução;
+- plano e resultado de teste de carga entregues, sem declarar aprovado um limite de desempenho ainda não validado.
 
-A presenca na RTM nao significa que um requisito esteja implementado ou aprovado. Requisito bloqueado deve permanecer identificado como bloqueado/pendente, sem evidencia de teste passar em seu lugar.
+**Defeito crítico:** dupla reserva aceita, acesso indevido, perda ou corrupção de dados, aplicação que não sobe ou não reserva; no SonarCloud, vulnerabilidade ou bug de severidade blocker ou crítica.
 
-| Requisito / regra | Cenario e evidencia a rastrear | Situacao conhecida no backend |
+A presença na RTM não significa que um requisito esteja implementado ou aprovado. Requisito bloqueado deve permanecer identificado como bloqueado ou pendente, sem evidência de teste passar em seu lugar.
+
+| Requisito e regra | Cenário e evidência a rastrear | Situação conhecida no backend |
 |---|---|---|
-| RF07 / RN01 | Criar e alterar reserva com termino posterior; rejeitar inicio/fim ausentes ou termino igual/anterior ao inicio. Validar resposta HTTP e regra de intervalo. | Implementado em `ReservaService.validarIntervalo`; DTOs tambem validam campos obrigatorios. |
-| RF08 / RN02 | Para a mesma sala, verificar intervalos sobrepostos e nao sobrepostos e os estados que ocupam agenda. Registrar separadamente os cenarios de professor e material quando forem suportados. | Parcial: `ReservaRepository.contarConflitos` considera apenas sala; professor e material nao estao no modelo de reserva atual. |
-| RF09 / RN03 | Submeter em paralelo duas solicitacoes para a mesma sala e intervalo contra PostgreSQL; exigir evidencia de no maximo uma reserva aceita e nenhuma dupla reserva. | Parcial: ha lock pessimista na sala durante o fluxo, mas falta teste de integracao concorrente com o banco-alvo. |
-| RF10 / RN05 | Rastrear a regra de aprovacao de recurso restrito, incluindo aprovador permitido e decisao resultante, somente apos a classificacao de recurso e os papeis aceitos serem definidos. | Pendente/parcial: nao ha classificacao de recurso restrito; o codigo aceita `RESPONSAVEL` ou `ADMINISTRADOR` na decisao e nao autentica o chamador. Nao marcar como aprovado. |
-| RF11 / RN04 | Tentar solicitar reserva para sala indisponivel e verificar recusa. Separar indisponibilidade por estado de sala de bloqueio/manutencao por periodo. | Parcial: o servico recusa sala cujo estado nao seja `DISPONIVEL`; nao ha agenda de bloqueios ou manutencoes por periodo. |
+| RF07 e RN01 | Criar e alterar reserva com término posterior; rejeitar início ou fim ausentes ou término igual ou anterior ao início. Validar resposta HTTP e regra de intervalo. | Implementado em `ReservaService.validarIntervalo`; DTOs também validam campos obrigatórios. |
+| RF08 e RN02 | Para a mesma sala, verificar intervalos sobrepostos e não sobrepostos e os estados que ocupam agenda. A detecção deve abranger também professor e material; registrar separadamente esses cenários quando forem suportados. | Parcial: `ReservaRepository.contarConflitos` considera apenas sala; professor e material não estão no modelo de reserva atual. |
+| RF09 e RN03 | Submeter em paralelo duas solicitações para a mesma sala e intervalo contra PostgreSQL; exigir evidência de no máximo uma reserva aceita e nenhuma dupla reserva. | Parcial: há lock pessimista na sala durante o fluxo, mas falta teste de integração concorrente com o banco-alvo. |
+| RF10 e RN05 | Somente o Responsável aprova recurso restrito; recurso não restrito segue o fluxo normal. O recurso terá um campo que o classifica como restrito. | Pendente ou parcial: não há classificação de recurso restrito; o código aceita `RESPONSAVEL` ou `ADMINISTRADOR` na decisão e não autentica o chamador. Não marcar como aprovado. |
+| RF11 e RN04 | Tentar solicitar reserva para sala indisponível e verificar recusa. Separar indisponibilidade por estado de sala de bloqueio e manutenção por período. Um bloqueio novo é recusado enquanto existir reserva ativa no período. | Parcial: o serviço recusa sala cujo estado não seja `DISPONIVEL`; não há agenda de bloqueios ou manutenções por período. |
 
-Os relatorios devem mostrar o resultado por requisito (passou, falhou, bloqueado ou nao executado) e manter a ligacao entre RF/RN, caso de teste e evidencia. A classificacao de defeito critico precisa seguir criterio aprovado pela equipe; ela nao e definida nos documentos lidos.
+Os relatórios devem mostrar o resultado por requisito (passou, falhou, bloqueado ou não executado) e manter a ligação entre RF e RN, caso de teste e evidência.
 
 ## 5. Ambiente e dados de teste
 
-- Runtime alvo informado pelo projeto: Java 21, Spring Boot 3 e Maven. O contrato OpenAPI usa `http://localhost:8080` como servidor local.
-- O ambiente de integracao deve usar PostgreSQL descartavel via Testcontainers, pois o teste de concorrencia depende do comportamento de locks do banco. A versao da imagem deve corresponder ao banco-alvo quando este for definido. E necessario um runtime de containers compativel com Testcontainers.
-- A base de teste deve ser isolada e reinicializada entre cenarios ou suites. Usar somente registros sinteticos, sem credenciais reais.
-- Preparar salas nos estados `DISPONIVEL`, `RESERVADA` e `EM_MANUTENCAO`; solicitantes dos tipos `PROFESSOR` e `COORDENADOR`; aprovadores `RESPONSAVEL` e `ADMINISTRADOR`; e reservas com estados e intervalos necessarios aos cenarios. Respeitar as restricoes de persistencia existentes, como capacidade minima de 20 para `Sala`.
-- Para conflitos, preparar intervalos coincidentes, sobrepostos e adjacentes; datas devem ser geradas de forma consistente durante a execucao. O teste concorrente deve compartilhar a mesma sala/intervalo entre as requisicoes e consultar o resultado persistido.
-- O repositorio ainda nao tem `pom.xml`, wrapper `mvnw` ou suite de testes Java identificada. Portanto, a estrategia e uma orientacao para implementacao futura; JaCoCo, Testcontainers e os demais testes ainda nao podem ser executados neste estado.
+- Runtime alvo: Java 21, Spring Boot 3 e Maven. O contrato OpenAPI usa `http://localhost:8080` como servidor local.
+- O ambiente de integração usa PostgreSQL 16 descartável via Testcontainers, pois o teste de concorrência depende do comportamento de locks do banco. A CI usa `ubuntu-latest` do GitHub Actions, que já tem Docker.
+- A base de teste deve ser isolada e reinicializada entre cenários ou suítes. Usar somente registros sintéticos, sem credenciais reais.
+- Preparar salas nos estados `DISPONIVEL`, `RESERVADA` e `EM_MANUTENCAO`; solicitantes dos tipos `PROFESSOR` e `COORDENADOR`; aprovadores `RESPONSAVEL` e `ADMINISTRADOR` com IDs diferentes entre si; e reservas com estados e intervalos necessários aos cenários. Respeitar as restrições de persistência existentes, como capacidade mínima de 20 para `Sala`.
+- Para conflitos, preparar intervalos coincidentes, sobrepostos e adjacentes; datas devem ser geradas de forma consistente durante a execução. O teste concorrente deve compartilhar a mesma sala e intervalo entre as requisições e consultar o resultado persistido.
+- A responsividade da interface (RF17) é verificada manualmente em Chrome e Firefox na versão atual e em uma viewport de celular.
+- A base executável (`pom.xml`, `mvnw`, `application.properties`, `docker-compose.yml`) existe, mas a suíte de testes Java ainda não. JaCoCo, Testcontainers e o pipeline de CI entram na fase seguinte.
 
-## 6. Riscos da estrategia
+## 6. Riscos da estratégia
 
-- Sem build Maven e suite Java, nao ha execucao automatizada integrada nem medicao verificavel de cobertura.
-- RF08, RF10 e RF11 excedem o comportamento atualmente implementado; testar apenas o recorte existente pode criar falsa impressao de conformidade com o PRD.
-- Um banco em memoria ou mocks para repositorios nao reproduzem necessariamente locks e concorrencia do PostgreSQL; por isso, nao servem como unica evidencia de RF09.
-- Os identificadores e papeis enviados nas requisicoes nao comprovam identidade. Testes com IDs conhecidos nao validam autenticacao nem autorizacao real.
-- Nao ha cliente de notificacao; WireMock nao tera integracao concreta para verificar ate RF19 ter escopo e contrato.
-- Nao foram definidos volume de usuarios, taxa de requisicoes, duracao, latencia-alvo ou ambiente de carga. Resultados do JMeter sem esses parametros sao apenas medidas observadas, nao aprovacao de desempenho.
-- O E2E proposto cobre a jornada HTTP/backend. A cobertura automatizada da interface web requer decisao de escopo e ferramenta especifica.
-- `solicitadoEm` e `aprovadoEm` usam o relogio do sistema; asserts dependentes de horario exato podem ser instaveis.
+- Sem suíte Java e sem CI, não há execução automatizada integrada nem medição verificável de cobertura.
+- RF08, RF10 e RF11 excedem o comportamento atualmente implementado; testar apenas o recorte existente pode criar falsa impressão de conformidade com o PRD.
+- Um banco em memória ou mocks para repositórios não reproduzem necessariamente locks e concorrência do PostgreSQL; por isso, não servem como única evidência de RF09.
+- Os identificadores e papéis enviados nas requisições não comprovam identidade. Testes com IDs conhecidos não validam autenticação nem autorização real.
+- Não há cliente de notificação; o WireMock não terá integração concreta para verificar até RF19 ser implementado.
+- As metas de carga são premissas ainda não medidas. Resultados do JMeter só viram aprovação depois de validadas.
+- A interface web não chama a API, então não há E2E de navegador enquanto isso não mudar.
+- `solicitadoEm` e `aprovadoEm` usam o relógio do sistema; asserts dependentes de horário exato podem ser instáveis.
+- O prazo até a entrega é curto; o trabalho deve priorizar execução, pipeline, autorização e teste de dupla reserva.
+
+## 7. Decisões
+
+| Nº | Decisão | Motivo | Decidido por |
+|---|---|---|---|
+| 1 | PostgreSQL 16 em container (Testcontainers) nos testes; a CI usa `ubuntu-latest`, que já tem Docker. | A concorrência depende do comportamento de locks do banco real. | Grupo |
+| 2 | `pom.xml`, `mvnw` e JaCoCo na fase de base. Exclusões do JaCoCo só para DTOs, classe principal, classes de configuração e `DevDataInitializer`, cada uma justificada. | Serviços, entidades com regra e o handler de erros devem ser medidos. | Grupo |
+| 3 | RF10: o recurso terá um campo restrito. Somente `RESPONSAVEL` aprova recurso restrito (o código atual também aceita `ADMINISTRADOR`, possível defeito). Recurso não restrito passa direto para `APROVADA`. | RN05 da especificação. | Grupo |
+| 4 | RF08: a detecção de sobreposição vale para sala, professor e material. | RN02 da especificação. Hoje só a sala é verificada (defeito a registrar). | Grupo |
+| 5 | RF11: testar sala em manutenção, período futuro de bloqueio e reserva existente dentro de um bloqueio novo. O bloqueio novo é recusado enquanto existir reserva ativa no período. | Regra mais simples de testar e de explicar. | Grupo |
+| 6 | RF19: integração externa simulada via HTTP, verificada com WireMock, no evento de reserva aprovada, rejeitada ou cancelada. | Dá um resultado observável a verificar. | Grupo |
+| 7 | Carga (premissa a validar): 50 usuários, 5 minutos, p95 abaixo de 500 ms, erro abaixo de 1%, ambiente local em containers. | A disciplina não define a carga. | Grupo |
+| 8 | E2E pela jornada completa da API com banco real. Teste de navegador só se a interface passar a chamar a API. | A interface atual não chama a API. | Grupo |
+| 9 | Responsividade verificada manualmente em Chrome, Firefox e viewport de celular. Java 21 e PostgreSQL 16. | Escopo do E2E reduzido. | Grupo |
+| 10 | Defeito crítico: dupla reserva aceita, acesso indevido, perda ou corrupção de dados, aplicação que não sobe ou não reserva; bug ou vulnerabilidade blocker ou crítica no SonarCloud. | Alinhado aos limitadores de nota. | Grupo |
+| 11 | OpenAPI declara campos obrigatórios da resposta `Reserva` e exemplos de erro para 400, 403, 404 e 409, inclusive 403 em cancelamento e alteração de horário. | Hoje o contrato não declara o 403 desses endpoints. | Grupo |
+
+## Documentos desta estratégia
+
+- `docs/testes/inventario-regras.md`: regras, riscos e estado atual.
+- `docs/testes/caixa-preta.md`: casos pelo contrato.
+- `docs/testes/caixa-branca.md`: casos por decisões do código e prova de proteção.
+- `docs/rtm.md`, `docs/defeitos/`, `docs/seguranca/matriz-autorizacao.md` e `docs/testes/mutacao-manual.md`: a produzir.
 
 ## Perguntas em aberto
 
-- Qual banco e versao representam o ambiente-alvo, e qual runtime de containers estara disponivel na CI?
-- Quando serao disponibilizados `pom.xml`, `mvnw`, dependencias de teste e configuracao JaCoCo? Quais classes, se houver, podem ser excluidas justificadamente das metricas?
-- Em RF10, como um recurso sera classificado como restrito e somente `RESPONSAVEL` podera aprovar, ou `ADMINISTRADOR` tambem tera permissao? Como isso se relaciona ao endpoint de aprovacao atual?
-- Como RF08 deve abranger conflitos de professor e material, alem de sala?
-- Quais bloqueios e periodos de manutencao devem ser testados em RF11, inclusive em relacao a reservas existentes?
-- RF19 sera uma notificacao simulada ou uma integracao externa? Qual evento, payload e resultado observavel devem ser verificados com WireMock?
-- Qual e a carga-alvo para JMeter (usuarios concorrentes, taxa, duracao, latencia e ambiente)?
-- E2E deve incluir navegacao na interface web ou a jornada completa pela API e banco atende ao criterio? Se houver navegador, qual ferramenta deve ser adotada?
-- Quais sao a matriz de ambientes/navegadores e os criterios de defeito critico para a avaliacao?
-- O contrato OpenAPI deve declarar propriedades obrigatorias da resposta `Reserva` e exemplos de erro mais especificos?
+- Qual mecanismo de autenticação será usado para RF01 e RF02 (token JWT ou sessão)?
+- Qual funcionalidade nova será desenvolvida com TDD ou BDD (candidatas: aprovação de recurso restrito ou bloqueio por período)?
+- O E2E pela API, sem navegador, atende ao critério de end-to-end da especificação? Confirmar com o professor.
+- As metas de carga da decisão 7 se confirmam depois da primeira medição?
