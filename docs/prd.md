@@ -56,6 +56,7 @@ Consulte [requisitos nao funcionais e evidencias ISO 25010](prd/requisitos-nao-f
 - [Requisitos funcionais e rastreabilidade](prd/requisitos-funcionais.md)
 - [Requisitos nao funcionais ISO 25010](prd/requisitos-nao-funcionais.md)
 - [Fluxos e diagramas de sequencia](prd/fluxos-sequencia.md)
+- Modelagem estática: [diagrama de componentes](prd/modelagem/estatica/componentes.md) e [diagrama de classes](prd/modelagem/estatica/classes.md)
 - [Documentacao da API de reservas e contrato OpenAPI](api-reservas.md)
 - Personas: [Administrador](prd/personas/admin-sistema.md), [Responsavel](prd/personas/responsavel.md) e [Solicitante](prd/personas/solicitante.md)
 
