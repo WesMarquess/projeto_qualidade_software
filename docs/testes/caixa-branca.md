@@ -33,6 +33,8 @@ Arquivo: `src/main/java/br/com/projeto_qualidade_software/projeto/services/Reser
 | CB-10 | `buscarResponsavel`, L195 | Responsável não encontrado | `findById` vazio: lança `EntityNotFoundException` | Responsável encontrado | U | INV-04 |
 | CB-11 | `buscarAdministrador`, L202 | Administrador não encontrado | `findById` vazio: lança `EntityNotFoundException` | Administrador encontrado | U | INV-04 |
 
+Os casos CB-02, CB-03, CB-07, CB-09, CB-10 e CB-11 (`orElseThrow`) não são desvios no bytecode do método. O JaCoCo mede o lado da exceção como linhas da expressão lambda. Permanecem porque cada exceção define um 404 do contrato.
+
 ### 2.2 Condições compostas (MC/DC simplificado)
 
 **`validarIntervalo`, L243:** `inicio == null || fim == null || !fim.isAfter(inicio)`
@@ -221,7 +223,20 @@ Nenhum método passa de complexidade 4. Os de maior risco para ramos são `valid
 | `RestricoesPersistenciaIT` | CB-43 a CB-47 | I (Testcontainers) |
 | `ReservaRepositoryIT` | CB-48 a CB-58 | I (Testcontainers) |
 
-## 13. Resumo
+## 13. Prova de proteção (mutação manual)
+
+Para cada regra crítica, a regra é quebrada temporariamente no código, o teste ligado a ela é executado e o resultado é registrado. A quebra é desfeita com `git restore`. Nenhum resultado abaixo foi executado ainda.
+
+| Regra | Quebra a fazer | Teste que deve falhar | Resultado |
+|---|---|---|---|
+| RN01 intervalo | Trocar `!fim.isAfter(inicio)` por `fim.isBefore(inicio)` em `validarIntervalo` | CB-14 e CP-04 | A executar |
+| RN02 sobreposição | Trocar `<` por `<=` na consulta `contarConflitos` | CB-52, CB-53, CP-29 e CP-30 | A executar |
+| RN03 dupla reserva | Remover `@Lock` de `SalaRepository.buscarPorIdComBloqueio` | Teste de concorrência (caixa cinza) | A executar |
+| RN04 sala indisponível | Remover a chamada a `validarDisponibilidadeDaSala` | CB-04, CP-42 e CP-43 | A executar |
+| RN05 aprovação | Fazer o ramo ADMINISTRADOR lançar `AcessoNegadoException` | CB-21 e CP-55 | A executar |
+| RN06 estados | Remover a checagem de estado em `cancelarReserva` | CB-19 e TR-11 | A executar |
+
+## 14. Resumo
 
 | Grupo | Casos |
 |---|---|

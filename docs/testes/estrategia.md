@@ -26,8 +26,8 @@ Ficam fora da validação funcional da implementação atual: autenticação e a
 | E2E | REST-assured, aplicação completa e PostgreSQL em Testcontainers | Executar jornadas pela API, da solicitação até consulta e, quando aplicável, alteração, cancelamento ou decisão, confirmando o estado persistido. Não há teste de navegador enquanto a interface web não chamar a API (hoje ela usa dados locais). |
 | Concorrência | JUnit 5, REST-assured e Testcontainers com PostgreSQL | Disparar solicitações conflitantes em paralelo para a mesma sala e intervalo; conferir resultado final no banco e evidenciar que não houve dupla reserva (RF09 e RN03). |
 | Segurança | JUnit 5 parametrizado, MockMvc ou REST-assured | Matriz perfil × operação (`docs/seguranca/matriz-autorizacao.md`), regras de posse, validação de entrada e respostas de erro sem stack trace, SQL ou nome de classe interna. Depende de RF01 e RF02. |
-| Carga | Apache JMeter | Medir os fluxos de consulta e solicitação da API e entregar plano e resultado de carga. Premissa a validar: 50 usuários concorrentes, 5 minutos, p95 abaixo de 500 ms, erro abaixo de 1%, ambiente local em containers. |
-| Integração simulada | WireMock | Notificação como integração externa simulada via HTTP, disparada ao aprovar, rejeitar ou cancelar. Payload: id da reserva, destinatário, tipo do evento e status. Falha ou timeout da notificação não desfaz a reserva. RF19 está pendente e não há cliente de notificação no código atual. |
+| Carga | Apache JMeter | Medir consultas, criação sem conflito e contenção por sala/intervalo; entregar plano e resultado. Metas experimentais provisórias: 50 usuários virtuais, 5 minutos, p95 abaixo de 500 ms e erros abaixo de 1%. Não são requisitos oficiais aprovados, precisam ser validadas e os resultados podem não atingi-las. |
+| Integrações externas | WireMock, se aplicável | RF19 está pendente: a decisão entre notificação simulada e API externa, assim como eventos, payload e comportamento em falha ou timeout, ainda precisa ser definida. Não há cliente HTTP externo no código atual; WireMock será usado se uma integração for confirmada e implementada. |
 
 Os testes de API devem cobrir os resultados documentados no OpenAPI, incluindo `201` na solicitação aceita e erros `400`, `403`, `404` ou `409` quando aplicáveis. O contrato deve declarar as propriedades obrigatórias da resposta `Reserva` e exemplos de erro para 400, 403, 404 e 409.
 
@@ -72,11 +72,11 @@ Os relatórios devem mostrar o resultado por requisito (passou, falhou, bloquead
 - Preparar salas nos estados `DISPONIVEL`, `RESERVADA` e `EM_MANUTENCAO`; solicitantes dos tipos `PROFESSOR` e `COORDENADOR`; aprovadores `RESPONSAVEL` e `ADMINISTRADOR` com IDs diferentes entre si; e reservas com estados e intervalos necessários aos cenários. Respeitar as restrições de persistência existentes, como capacidade mínima de 20 para `Sala`.
 - Para conflitos, preparar intervalos coincidentes, sobrepostos e adjacentes; datas devem ser geradas de forma consistente durante a execução. O teste concorrente deve compartilhar a mesma sala e intervalo entre as requisições e consultar o resultado persistido.
 - A responsividade da interface (RF17) é verificada manualmente em Chrome e Firefox na versão atual e em uma viewport de celular.
-- A base executável (`pom.xml`, `mvnw`, `application.properties`, `docker-compose.yml`) existe, mas a suíte de testes Java ainda não. JaCoCo, Testcontainers e o pipeline de CI entram na fase seguinte.
+- O workflow `.github/workflows/ci.yml` executa `./mvnw -B verify` em pushes e pull requests. O runner hospedado `ubuntu-latest` disponibiliza Docker para os testes PostgreSQL com Testcontainers; a execução real do workflow ainda depende de um push e da validação no GitHub.
 
 ## 6. Riscos da estratégia
 
-- Sem suíte Java e sem CI, não há execução automatizada integrada nem medição verificável de cobertura.
+- A configuração da CI existe, mas sua execução no GitHub ainda precisa ser validada após um push; resultados locais não comprovam a execução no runner hospedado.
 - RF08, RF10 e RF11 excedem o comportamento atualmente implementado; testar apenas o recorte existente pode criar falsa impressão de conformidade com o PRD.
 - Um banco em memória ou mocks para repositórios não reproduzem necessariamente locks e concorrência do PostgreSQL; por isso, não servem como única evidência de RF09.
 - Os identificadores e papéis enviados nas requisições não comprovam identidade. Testes com IDs conhecidos não validam autenticação nem autorização real.
@@ -95,7 +95,7 @@ Os relatórios devem mostrar o resultado por requisito (passou, falhou, bloquead
 | 3 | RF10: o recurso terá um campo restrito. Somente `RESPONSAVEL` aprova recurso restrito (o código atual também aceita `ADMINISTRADOR`, possível defeito). Recurso não restrito passa direto para `APROVADA`. | RN05 da especificação. | Grupo |
 | 4 | RF08: a detecção de sobreposição vale para sala, professor e material. | RN02 da especificação. Hoje só a sala é verificada (defeito a registrar). | Grupo |
 | 5 | RF11: testar sala em manutenção, período futuro de bloqueio e reserva existente dentro de um bloqueio novo. O bloqueio novo é recusado enquanto existir reserva ativa no período. | Regra mais simples de testar e de explicar. | Grupo |
-| 6 | RF19: integração externa simulada via HTTP, verificada com WireMock, no evento de reserva aprovada, rejeitada ou cancelada. | Dá um resultado observável a verificar. | Grupo |
+| 6 | RF19: decidir se haverá notificação simulada ou integração externa e definir eventos, contrato e comportamento em falha. Usar WireMock se uma integração HTTP for confirmada e implementada. | A decisão de escopo e o contrato ainda estão pendentes; não presumir uma integração inexistente. | Pendente |
 | 7 | Carga (premissa a validar): 50 usuários, 5 minutos, p95 abaixo de 500 ms, erro abaixo de 1%, ambiente local em containers. | A disciplina não define a carga. | Grupo |
 | 8 | E2E pela jornada completa da API com banco real. Teste de navegador só se a interface passar a chamar a API. | A interface atual não chama a API. | Grupo |
 | 9 | Responsividade verificada manualmente em Chrome, Firefox e viewport de celular. Java 21 e PostgreSQL 16. | Escopo do E2E reduzido. | Grupo |
