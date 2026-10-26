@@ -1,29 +1,24 @@
-# Environment & Secrets (AIOX)
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Segredos e ambiente
 .env
-.env.local
-.env.*.local
+.env.*
 *.key
 *.pem
 
-# Dependencies (AIOX)
-node_modules/
-node_modules
-
-# Build & Logs (AIOX)
-dist/
-build/
-logs/
-
-# IDE & OS (AIOX)
+# IDE e sistema operacional
+.idea/
+.vscode/
+*.iml
+*.swp
 .DS_Store
 Thumbs.db
-.idea/
-*.swp
 
-# AIOX Local (AIOX)
-.aiox-core/local/
-.claude/settings.local.json
-.aiox/install-log.txt
+# Node (teste do front-end)
+node_modules/
 
-.aiox-core/*
-.claude/*
+# Logs
+logs/
+*.log

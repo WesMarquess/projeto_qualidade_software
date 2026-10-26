@@ -8,24 +8,26 @@ Desenvolver e validar uma aplicacao para organizar reservas de recursos universi
 
 - Java 21
 - Spring Boot 3
-- Maven
+- Maven (wrapper `./mvnw`)
+- PostgreSQL 16 (`docker compose up -d` para o ambiente local; Testcontainers nos testes)
 
 ## Mapa do projeto
 
-- `src/main/java/`: codigo Java da aplicacao, organizado em API, entidades, enums, excecoes, repositorios e servicos.
+- `src/main/java/`: codigo Java da aplicacao, organizado em API, configuracao, entidades, enums, excecoes, repositorios e servicos.
 - `src/main/resources/static/`: interface web estatica (HTML, CSS e JavaScript).
-- `docs/`: PRD, requisitos funcionais e nao funcionais, fluxos, historias, contrato OpenAPI e documentacao da API.
-- `tests/`: testes e verificacoes do projeto.
+- `docs/`: PRD, requisitos, fluxos, historias, contrato OpenAPI, documentacao da API e documentos de teste (`docs/testes/`).
+- `tests/`: verificacao do contrato do front-end (Node).
 
 ## Verificacao
 
-O comando alvo de verificacao e `./mvnw -B verify`. No estado atual, o wrapper `mvnw` e o `pom.xml` ainda nao existem na raiz; portanto, esse comando ainda nao pode ser executado neste repositorio.
+O comando de verificacao e `./mvnw -B verify`. Testes de integracao exigem Docker.
 
 ## Convencoes
 
 - Todo teste deve citar o requisito funcional (RF) ou a regra de negocio (RN) que verifica.
 - Derive requisitos exclusivamente de `docs/prd.md` e dos documentos em `docs/prd/`. Nao invente requisitos nem transforme pendencias do PRD em comportamento definido.
-- Preserve a rastreabilidade entre requisitos, implementacao e testes.
+- Preserve a rastreabilidade entre requisitos, implementacao e testes (`docs/rtm.md`).
+- Cada caso de teste cita o ID dos documentos em `docs/testes/` (INV, CP, CB).
 
 ## Proibicoes
 
