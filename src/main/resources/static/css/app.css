@@ -32,6 +32,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
@@ -49,6 +53,163 @@ body {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   clip-path: inset(50%);
+}
+
+.login-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+  background: var(--white);
+}
+
+.login-intro {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 34px clamp(30px, 6vw, 88px) 32px;
+  overflow: hidden;
+  color: var(--white);
+  background-color: var(--blue-950);
+  background-image: repeating-linear-gradient(135deg, transparent 0 32px, rgb(255 255 255 / 3%) 32px 33px);
+}
+
+.login-brand {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  padding: 0;
+}
+
+.login-brand .brand-copy span {
+  color: #a9c2d5;
+}
+
+.login-intro-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 510px;
+  margin: auto 0;
+  padding: 74px 0;
+}
+
+.login-kicker {
+  color: #f5a248;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.login-intro-copy h1 {
+  max-width: 500px;
+  margin: 16px 0;
+  font-size: clamp(38px, 5vw, 64px);
+  line-height: 1.06;
+}
+
+.login-intro-copy p {
+  max-width: 420px;
+  margin: 0;
+  color: #c0d1de;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.login-pattern {
+  position: absolute;
+  right: -82px;
+  bottom: 72px;
+  width: 270px;
+  height: 270px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  transform: rotate(35deg);
+}
+
+.login-pattern span {
+  position: absolute;
+  inset: 23px;
+  border: 1px solid rgb(255 255 255 / 14%);
+}
+
+.login-pattern span:nth-child(2) {
+  inset: 47px;
+}
+
+.login-pattern span:nth-child(3) {
+  inset: 71px;
+  border-color: var(--orange-500);
+}
+
+.login-footer {
+  position: relative;
+  z-index: 1;
+  color: #a9c2d5;
+  font-size: 11px;
+}
+
+.login-panel {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 48px;
+  background: var(--blue-050);
+}
+
+.login-form {
+  display: grid;
+  width: min(100%, 390px);
+  gap: 15px;
+}
+
+.login-form h2 {
+  margin: -7px 0 -9px;
+  color: var(--blue-950);
+  font-size: 28px;
+  letter-spacing: -0.025em;
+}
+
+.login-description {
+  margin: 0 0 8px;
+  color: var(--ink-500);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.login-form .field {
+  gap: 7px;
+}
+
+.login-form .field span {
+  font-size: 11px;
+}
+
+.login-form .field input {
+  min-height: 45px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.login-error {
+  min-height: 16px;
+  margin: -5px 0 -8px;
+}
+
+.login-submit {
+  min-height: 46px;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.login-submit span {
+  font-size: 17px;
+}
+
+.login-footnote {
+  margin: 1px 0 0;
+  color: var(--ink-500);
+  font-size: 10px;
+  text-align: center;
 }
 
 button,
@@ -334,6 +495,12 @@ select:focus-visible {
 .topbar-date {
   padding-left: 12px;
   border-left: 1px solid var(--ink-200);
+}
+
+.account-name {
+  color: var(--ink-700);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .page-content {
@@ -1106,6 +1273,49 @@ select:focus-visible {
 }
 
 @media (max-width: 760px) {
+  .login-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .login-intro {
+    min-height: 0;
+    padding: 22px 24px 28px;
+  }
+
+  .login-brand {
+    padding-bottom: 0;
+  }
+
+  .login-intro-copy {
+    max-width: 520px;
+    padding: 42px 0 34px;
+  }
+
+  .login-intro-copy h1 {
+    max-width: 420px;
+    font-size: 38px;
+  }
+
+  .login-intro-copy p {
+    font-size: 13px;
+  }
+
+  .login-pattern {
+    right: -165px;
+    bottom: -190px;
+    width: 260px;
+    height: 260px;
+  }
+
+  .login-footer {
+    display: none;
+  }
+
+  .login-panel {
+    min-height: 0;
+    padding: 38px 24px 48px;
+  }
+
   .sidebar {
     position: sticky;
     inset: 0 0 auto;
@@ -1190,7 +1400,7 @@ select:focus-visible {
   }
 
   .topbar-meta {
-    gap: 0;
+    gap: 8px;
   }
 
   .demo-badge {
@@ -1200,6 +1410,15 @@ select:focus-visible {
 
   .topbar-date {
     display: none;
+  }
+
+  .account-name {
+    display: none;
+  }
+
+  .logout-button {
+    min-height: 31px;
+    padding: 0 8px;
   }
 
   .page-content {

@@ -224,3 +224,19 @@ test("Spring Boot static entry point loads local assets without backend calls", 
   assert.doesNotMatch(app, /\bfetch\s*\(|XMLHttpRequest/);
   assert.match(styles, /@media \(max-width: 760px\)/);
 });
+
+test("login exposes only the work areas permitted for each mock role", () => {
+  const html = readProjectFile("src/main/resources/static/index.html");
+  const app = readProjectFile("src/main/resources/static/js/app.js");
+
+  assert.match(html, /id="login-screen"/);
+  assert.match(html, /id="login-form"/);
+  assert.match(html, /id="logout-button"/);
+  assert.match(app, /email: "solicitante@senac\.local"/);
+  assert.match(app, /email: "responsavel@senac\.local"/);
+  assert.match(app, /email: "admin@senac\.local"/);
+  assert.match(app, /solicitante:\s*\["solicitante"\]/);
+  assert.match(app, /responsavel:\s*\["responsavel"\]/);
+  assert.match(app, /administrador:\s*\["administrador",\s*"responsavel"\]/);
+  assert.match(app, /allowedProfiles\[state\.currentUser\.role\]\.includes\(profile\)/);
+});

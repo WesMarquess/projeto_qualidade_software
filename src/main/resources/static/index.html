@@ -11,7 +11,44 @@
   <script src="js/app.js" defer></script>
 </head>
 <body>
-  <div class="app-shell">
+  <main class="login-shell" id="login-screen">
+    <section class="login-intro" aria-label="Portal de espaços SENAC">
+      <a class="brand login-brand" href="#" aria-label="Salas SENAC">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span class="brand-copy">
+          <strong>SENAC</strong>
+          <span>GESTÃO DE SALAS</span>
+        </span>
+      </a>
+      <div class="login-intro-copy">
+        <span class="login-kicker">PORTAL DE ESPAÇOS</span>
+        <h1>Salas prontas para novas ideias.</h1>
+        <p>Consulte disponibilidades e acompanhe as reservas dos ambientes de aprendizagem.</p>
+      </div>
+      <div class="login-pattern" aria-hidden="true"><span></span><span></span><span></span></div>
+      <span class="login-footer">Espaços para aprender.</span>
+    </section>
+    <section class="login-panel" aria-labelledby="login-title">
+      <form class="login-form" id="login-form">
+        <span class="eyebrow">ACESSO AO SISTEMA</span>
+        <h2 id="login-title">Entre na sua conta</h2>
+        <p class="login-description">Use seu e-mail e senha para acessar sua área de trabalho.</p>
+        <label class="field" for="login-email">
+          <span>E-mail</span>
+          <input id="login-email" name="email" type="email" autocomplete="username" placeholder="voce@senac.local" required>
+        </label>
+        <label class="field" for="login-password">
+          <span>Senha</span>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required>
+        </label>
+        <p class="form-error login-error" id="login-error" role="alert" aria-live="polite"></p>
+        <button class="button button-primary login-submit" type="submit">Entrar <span aria-hidden="true">→</span></button>
+        <p class="login-footnote">Ambiente demonstrativo · acesso local</p>
+      </form>
+    </section>
+  </main>
+
+  <div class="app-shell" id="application" hidden>
     <aside class="sidebar">
       <a class="brand" href="#" aria-label="Salas SENAC, início">
         <span class="brand-mark" aria-hidden="true">S</span>
@@ -62,6 +99,8 @@
         <div class="topbar-meta">
           <span class="demo-badge"><span aria-hidden="true"></span> Protótipo local</span>
           <span class="topbar-date" id="today-label"></span>
+          <span class="account-name" id="account-name"></span>
+          <button class="button button-quiet button-small logout-button" id="logout-button" type="button">Sair</button>
         </div>
       </header>
 
