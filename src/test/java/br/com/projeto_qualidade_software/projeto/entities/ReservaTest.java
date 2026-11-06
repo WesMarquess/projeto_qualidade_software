@@ -152,4 +152,153 @@ class ReservaTest {
         assertSame(administradorAnterior, reserva.getAdministrador());
         assertEquals(aprovadoEmAnterior, reserva.getAprovadoEm());
     }
+
+    @Test
+    void callbackPrePersistDefineDataESolicitadaQuandoValoresEstaoAusentes() {
+        Reserva reserva = new Reserva();
+        LocalDateTime antesDoCallback = LocalDateTime.now();
+
+        reserva.aoCriar();
+
+        LocalDateTime depoisDoCallback = LocalDateTime.now();
+        assertEquals(StatusReserva.SOLICITADA, reserva.getStatus());
+        assertNotNull(reserva.getSolicitadoEm());
+        assertFalse(reserva.getSolicitadoEm().isBefore(antesDoCallback));
+        assertFalse(reserva.getSolicitadoEm().isAfter(depoisDoCallback));
+    }
+
+    @Test
+    void callbackPrePersistPreservaDataEStatusJaDefinidos() {
+        Reserva reserva = new Reserva();
+        LocalDateTime solicitadoEm = LocalDateTime.of(2026, 10, 25, 9, 0);
+        reserva.setSolicitadoEm(solicitadoEm);
+        reserva.setStatus(StatusReserva.APROVADA);
+
+        reserva.aoCriar();
+
+        assertEquals(solicitadoEm, reserva.getSolicitadoEm());
+        assertEquals(StatusReserva.APROVADA, reserva.getStatus());
+    }
+
+    @Test
+    void callbackPrePersistDefineStatusSolicitadaQuandoStatusEstaAusente() {
+        Reserva reserva = new Reserva();
+        LocalDateTime solicitadoEm = LocalDateTime.of(2026, 10, 25, 9, 0);
+        reserva.setSolicitadoEm(solicitadoEm);
+        reserva.setStatus(null);
+
+        reserva.aoCriar();
+
+        assertEquals(solicitadoEm, reserva.getSolicitadoEm());
+        assertEquals(StatusReserva.SOLICITADA, reserva.getStatus());
+    }
+
+    @Test
+    void aprovarComResponsavelNuloLancaExcecaoSemAlterarReserva() {
+        Reserva reserva = new Reserva();
+        Administrador administradorAnterior = new Administrador();
+        reserva.setAdministrador(administradorAnterior);
+
+        assertThrows(IllegalArgumentException.class, () -> reserva.aprovar((Responsavel) null));
+
+        assertEquals(StatusReserva.SOLICITADA, reserva.getStatus());
+        assertNull(reserva.getResponsavel());
+        assertSame(administradorAnterior, reserva.getAdministrador());
+        assertNull(reserva.getAprovadoEm());
+    }
+
+    @Test
+    void aprovarComAdministradorNuloLancaExcecaoSemAlterarReserva() {
+        Reserva reserva = new Reserva();
+        Responsavel responsavelAnterior = new Responsavel();
+        reserva.setResponsavel(responsavelAnterior);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> reserva.aprovar((Administrador) null)
+        );
+
+        assertEquals(StatusReserva.SOLICITADA, reserva.getStatus());
+        assertSame(responsavelAnterior, reserva.getResponsavel());
+        assertNull(reserva.getAdministrador());
+        assertNull(reserva.getAprovadoEm());
+    }
+
+    @Test
+    void rejeitarComResponsavelNuloLancaExcecaoSemAlterarReserva() {
+        Reserva reserva = new Reserva();
+        Administrador administradorAnterior = new Administrador();
+        reserva.setAdministrador(administradorAnterior);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> reserva.rejeitar((Responsavel) null)
+        );
+
+        assertEquals(StatusReserva.SOLICITADA, reserva.getStatus());
+        assertNull(reserva.getResponsavel());
+        assertSame(administradorAnterior, reserva.getAdministrador());
+        assertNull(reserva.getAprovadoEm());
+    }
+
+    @Test
+    void rejeitarComAdministradorNuloLancaExcecaoSemAlterarReserva() {
+        Reserva reserva = new Reserva();
+        Responsavel responsavelAnterior = new Responsavel();
+        reserva.setResponsavel(responsavelAnterior);
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> reserva.rejeitar((Administrador) null)
+        );
+
+        assertEquals(StatusReserva.SOLICITADA, reserva.getStatus());
+        assertSame(responsavelAnterior, reserva.getResponsavel());
+        assertNull(reserva.getAdministrador());
+        assertNull(reserva.getAprovadoEm());
+    }
+
+    @Test
+    void aprovarPorAdministradorForaDoEstadoSolicitadoPreservaReserva() {
+        Reserva reserva = new Reserva();
+        Responsavel responsavelAnterior = new Responsavel();
+        Administrador administradorAnterior = new Administrador();
+        LocalDateTime aprovadoEmAnterior = LocalDateTime.of(2026, 10, 25, 9, 0);
+        reserva.setStatus(StatusReserva.APROVADA);
+        reserva.setResponsavel(responsavelAnterior);
+        reserva.setAdministrador(administradorAnterior);
+        reserva.setAprovadoEm(aprovadoEmAnterior);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> reserva.aprovar(new Administrador())
+        );
+
+        assertEquals(StatusReserva.APROVADA, reserva.getStatus());
+        assertSame(responsavelAnterior, reserva.getResponsavel());
+        assertSame(administradorAnterior, reserva.getAdministrador());
+        assertEquals(aprovadoEmAnterior, reserva.getAprovadoEm());
+    }
+
+    @Test
+    void rejeitarPorResponsavelForaDoEstadoSolicitadoPreservaReserva() {
+        Reserva reserva = new Reserva();
+        Responsavel responsavelAnterior = new Responsavel();
+        Administrador administradorAnterior = new Administrador();
+        LocalDateTime aprovadoEmAnterior = LocalDateTime.of(2026, 10, 25, 9, 0);
+        reserva.setStatus(StatusReserva.APROVADA);
+        reserva.setResponsavel(responsavelAnterior);
+        reserva.setAdministrador(administradorAnterior);
+        reserva.setAprovadoEm(aprovadoEmAnterior);
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> reserva.rejeitar(new Responsavel())
+        );
+
+        assertEquals(StatusReserva.APROVADA, reserva.getStatus());
+        assertSame(responsavelAnterior, reserva.getResponsavel());
+        assertSame(administradorAnterior, reserva.getAdministrador());
+        assertEquals(aprovadoEmAnterior, reserva.getAprovadoEm());
+    }
 }

@@ -43,6 +43,27 @@ Contrato completo em [`docs/openapi.yaml`](docs/openapi.yaml) e guia em [`docs/a
 
 A suíte automatizada está em construção. O planejamento dos testes está em `docs/testes/`.
 
+## SonarCloud
+
+O workflow do GitHub Actions executa a análise SonarCloud após `./mvnw -B verify`, quando
+as variáveis `SONAR_ORGANIZATION` e `SONAR_PROJECT_KEY` estiverem cadastradas no
+repositório. Cadastre também o segredo `SONAR_TOKEN`; ele não deve ser salvo no código.
+O relatório XML de cobertura enviado à análise é gerado pelo JaCoCo em
+`target/site/jacoco/jacoco.xml`.
+
+Para executar localmente, use os valores reais do projeto e forneça o token pelo ambiente:
+
+```
+$env:SONAR_TOKEN = "<token>"
+.\mvnw.cmd -B verify sonar:sonar "-Dsonar.organization=<organização>" "-Dsonar.projectKey=<projectKey>" "-Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml"
+```
+
+No PowerShell, remova o token da sessão ao terminar:
+
+```
+Remove-Item Env:SONAR_TOKEN
+```
+
 ## Documentação
 
 - [PRD](docs/prd.md) e [requisitos funcionais](docs/prd/requisitos-funcionais.md)

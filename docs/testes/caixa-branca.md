@@ -9,15 +9,36 @@ Estes casos são derivados da **estrutura do código** em `src/main/java`. Cada 
   - **U:** teste unitário do `ReservaService` com repositórios simulados (Mockito).
   - **E:** teste unitário direto na entidade, sem Spring.
   - **I:** teste de integração com PostgreSQL (Testcontainers).
-  - **A:** teste pela API (REST-assured).
+  - **A:** teste HTTP pela API (MockMvc ou REST-assured).
 - **Linhas citadas** referem-se ao código atual. Se o arquivo mudar, as linhas devem ser revisadas.
 - **A cobertura estrutural não substitui a evidência de requisito.** Cada caso cita o INV do inventário que ele ajuda a comprovar.
+
+## 1.1 `SalaService`
+
+Arquivo: `src/main/java/br/com/projeto_qualidade_software/projeto/services/SalaService.java`
+
+| ID | Método | Verificação | Nível | Requisito |
+|---|---|---|---|---|
+| CB-59 | `listarSalas` | Delega a consulta de todas as salas para `SalaRepository.findAll` e retorna o resultado | U | RF05 |
 
 ## 2. `ReservaService`
 
 Arquivo: `src/main/java/br/com/projeto_qualidade_software/projeto/services/ReservaService.java`
 
-### 2.1 Tabela de decisões
+### 2.1 Listagem de reservas pendentes
+
+| ID | Método | Verificação | Nível | Requisito |
+|---|---|---|---|---|
+| CB-60 | `listarReservasPendentes` | Consulta o repository com status SOLICITADA usando método que ordena por `solicitadoEm` crescente | U | RF12 |
+
+Arquivo: `src/main/java/br/com/projeto_qualidade_software/projeto/api/ReservaController.java`
+
+| ID | Método | Verificação | Nível | Requisito |
+|---|---|---|---|---|
+| CB-61 | `listarPendentes` | Retorna lista de pendências com HTTP 200 e converte as entidades para `ReservaResponse` | A | RF12 |
+| CB-62 | `listarPendentes` | Retorna lista vazia com HTTP 200 quando não há pendências | A | RF12 |
+
+### 2.2 Tabela de decisões
 
 | ID | Método e linha | Decisão | Caso TRUE | Caso FALSE | Nível | INV |
 |---|---|---|---|---|---|---|
@@ -35,7 +56,7 @@ Arquivo: `src/main/java/br/com/projeto_qualidade_software/projeto/services/Reser
 
 Os casos CB-02, CB-03, CB-07, CB-09, CB-10 e CB-11 (`orElseThrow`) não são desvios no bytecode do método. O JaCoCo mede o lado da exceção como linhas da expressão lambda. Permanecem porque cada exceção define um 404 do contrato.
 
-### 2.2 Condições compostas (MC/DC simplificado)
+### 2.3 Condições compostas (MC/DC simplificado)
 
 **`validarIntervalo`, L243:** `inicio == null || fim == null || !fim.isAfter(inicio)`
 
@@ -55,7 +76,7 @@ Os casos CB-02, CB-03, CB-07, CB-09, CB-10 e CB-11 (`orElseThrow`) não são des
 | CB-18 | APROVADA | verdadeira | falsa | Cancela, estado CANCELADA | U | INV-09 |
 | CB-19 | CANCELADA, REJEITADA, EM_USO, CONCLUIDA, NAO_COMPARECEU | verdadeira | verdadeira | `IllegalStateException` | U (parametrizado) | INV-09 |
 
-### 2.3 Escolha do tipo de aprovador
+### 2.4 Escolha do tipo de aprovador
 
 **`aprovarReserva`, L135, L137 e L139:** se RESPONSAVEL, senão se ADMINISTRADOR, senão erro.
 
@@ -75,7 +96,7 @@ Os casos CB-02, CB-03, CB-07, CB-09, CB-10 e CB-11 (`orElseThrow`) não são des
 
 O `else` de CB-22 e CB-25 **não é alcançável pela API**: o DTO exige `tipoAprovador` não nulo e o enum só tem dois valores. Esses ramos só são cobertos por teste que chame o serviço direto.
 
-### 2.4 Métodos sem decisão
+### 2.5 Métodos sem decisão
 
 `listarReservasDoSolicitante` não tem ramos. Cubra as linhas com dois casos de integração: lista vazia (solicitante sem reservas) e lista com reservas, verificando a ordem por início do mais recente ao mais antigo (INV-12).
 
@@ -245,5 +266,7 @@ Para cada regra crítica, a regra é quebrada temporariamente no código, o test
 | `ApiExceptionHandler` | CB-36 a CB-42 |
 | Restrições de persistência | CB-43 a CB-47 |
 | Consultas JPQL | CB-48 a CB-58 |
-| Total | 58 identificadores de caso |
+| `SalaService` | CB-59 |
+| `ReservaService` e `ReservaController` (pendentes) | CB-60 a CB-62 |
+| Total | 62 identificadores de caso |
 | Ramos só alcançáveis por teste direto | CB-22, CB-25, CB-26 a CB-29, CB-32, CB-41 |

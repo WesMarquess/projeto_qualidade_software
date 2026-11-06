@@ -6,7 +6,7 @@
 
 ## Escopo
 
-A API expoe os fluxos de reserva implementados para salas: solicitacao, consulta, listagem por solicitante, alteracao de horario, cancelamento, aprovacao e rejeicao. O contrato OpenAPI pode ser aberto no Swagger Editor ou carregado por uma instalacao Swagger UI.
+A API expoe a consulta das salas cadastradas e os fluxos de reserva implementados: solicitacao, consulta, listagem por solicitante, alteracao de horario, cancelamento, aprovacao e rejeicao. O contrato OpenAPI pode ser aberto no Swagger Editor ou carregado por uma instalacao Swagger UI.
 
 O projeto ainda nao possui arquivo Maven/Gradle nem configuracao do Springdoc. Portanto, este contrato documenta a API no formato consumido pelo Swagger, mas a interface Swagger UI nao esta publicada pela aplicacao.
 
@@ -31,13 +31,19 @@ Na criacao, o payload precisa incluir `tipoSolicitante` (`PROFESSOR` ou `COORDEN
 
 | Metodo | Rota | Finalidade | Sucesso |
 |---|---|---|---|
+| `GET` | `/api/salas` | Listar salas cadastradas com ID, capacidade e estado | `200 OK` |
 | `POST` | `/api/reservas` | Solicitar reserva | `201 Created` |
 | `GET` | `/api/reservas/{reservaId}` | Consultar reserva | `200 OK` |
 | `GET` | `/api/reservas/solicitante/{solicitanteId}` | Listar reservas do solicitante | `200 OK` |
+| `GET` | `/api/reservas/pendentes` | Listar reservas `SOLICITADA`, ordenadas por data da solicitação crescente | `200 OK` |
 | `PUT` | `/api/reservas/{reservaId}/horario` | Alterar horario enquanto solicitada | `200 OK` |
 | `POST` | `/api/reservas/{reservaId}/cancelamento` | Cancelar reserva solicitada ou aprovada | `200 OK` |
 | `POST` | `/api/reservas/{reservaId}/aprovacao` | Aprovar reserva solicitada | `200 OK` |
 | `POST` | `/api/reservas/{reservaId}/rejeicao` | Rejeitar reserva solicitada | `200 OK` |
+
+A consulta de salas retorna uma lista, que pode estar vazia. Cada item contém somente `id`, `capacidade` e `statusSala`; não inclui os demais dados da entidade.
+
+A listagem de reservas pendentes retorna somente reservas com status `SOLICITADA`, ordenadas por `solicitadoEm` em ordem crescente. Se não houver pendências, retorna `200 OK` com `[]`. Os itens mantêm o formato `ReservaResponse`.
 
 ## Exemplos
 

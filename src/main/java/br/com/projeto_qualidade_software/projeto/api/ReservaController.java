@@ -55,6 +55,14 @@ public class ReservaController {
                 .toList();
     }
 
+    @GetMapping("/pendentes")
+    public List<ReservaResponse> listarPendentes() {
+        return reservaService.listarReservasPendentes()
+                .stream()
+                .map(ReservaResponse::de)
+                .toList();
+    }
+
     @PutMapping("/{reservaId}/horario")
     public ReservaResponse alterarHorario(
             @PathVariable Long reservaId,

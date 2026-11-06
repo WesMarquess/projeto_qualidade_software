@@ -30,6 +30,20 @@ Dados sintéticos, recriados antes de cada caso ou suíte.
 
 Os IDs de R1 e A1 devem ser **diferentes**, para detectar confusão entre os dois cadastros.
 
+## 2.1 Consulta de salas (GET `/api/salas`, RF05)
+
+| ID | Técnica | Entrada | Resultado esperado |
+|---|---|---|---|
+| CP-89 | PE | GET `/api/salas`, com várias salas cadastradas | 200; lista contém ID, capacidade e estado corretos para cada sala, sem campos adicionais da entidade |
+| CP-90 | PE | GET `/api/salas`, sem salas cadastradas | 200; corpo `[]` |
+
+## 2.2 Consulta de reservas pendentes (GET `/api/reservas/pendentes`, RF12)
+
+| ID | Técnica | Entrada | Resultado esperado |
+|---|---|---|---|
+| CP-91 | PE | Reservas com status SOLICITADA, APROVADA, REJEITADA e CANCELADA e datas de solicitação distintas | 200; somente SOLICITADA, ordenadas por `solicitadoEm` crescente |
+| CP-92 | PE | Nenhuma reserva SOLICITADA | 200; corpo `[]` |
+
 ## 3. Intervalo da reserva (INV-01)
 
 ### 3.1 Valor limite ao solicitar
@@ -247,7 +261,7 @@ Estes itens permanecem registrados como **bloqueados ou pendentes**. Eles não p
 
 | Grupo | Quantidade |
 |---|---|
-| Casos de execução (CP-01 a CP-88) | 88 |
+| Casos de execução (CP-01 a CP-92) | 92 |
 | Transições de estado (TR-01 a TR-16) | 16 |
 | Tabela de decisão (TD-01 a TD-04) | 4 |
 | Executáveis só com estado preparado no banco | CP-38 e CP-45 |

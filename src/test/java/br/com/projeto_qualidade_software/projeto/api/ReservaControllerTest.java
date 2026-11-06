@@ -17,6 +17,7 @@ import br.com.projeto_qualidade_software.projeto.enums.TipoSolicitante;
 import br.com.projeto_qualidade_software.projeto.exceptions.AcessoNegadoException;
 import br.com.projeto_qualidade_software.projeto.services.ReservaService;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -129,6 +131,39 @@ class ReservaControllerTest {
                 .andExpect(jsonPath("$[0].status").value("SOLICITADA"));
 
         verify(reservaService).listarReservasDoSolicitante(SOLICITANTE_ID);
+    }
+
+    @Test
+    @DisplayName("CB-61 / RF12 - Lista reservas pendentes com HTTP 200")
+    void listarReservasPendentesRetornaListaComHttpOk() throws Exception {
+        Reserva primeira = reserva(StatusReserva.SOLICITADA);
+        primeira.setId(RESERVA_ID);
+        Reserva segunda = reserva(StatusReserva.SOLICITADA);
+        segunda.setId(RESERVA_ID + 1);
+        when(reservaService.listarReservasPendentes())
+                .thenReturn(List.of(primeira, segunda));
+
+        mockMvc.perform(get("/api/reservas/pendentes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(RESERVA_ID))
+                .andExpect(jsonPath("$[0].status").value("SOLICITADA"))
+                .andExpect(jsonPath("$[1].id").value(RESERVA_ID + 1))
+                .andExpect(jsonPath("$[1].status").value("SOLICITADA"));
+
+        verify(reservaService).listarReservasPendentes();
+    }
+
+    @Test
+    @DisplayName("CB-62 / RF12 - Lista vazia quando não há pendências")
+    void listarReservasPendentesSemResultadosRetornaListaVazia() throws Exception {
+        when(reservaService.listarReservasPendentes()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/reservas/pendentes"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]", true));
+
+        verify(reservaService).listarReservasPendentes();
     }
 
     @Test

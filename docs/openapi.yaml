@@ -11,9 +11,25 @@ servers:
   - url: http://localhost:8080
     description: Ambiente local
 tags:
+  - name: Salas
+    description: Consulta de salas cadastradas
   - name: Reservas
     description: Solicitacao, consulta e decisao de reservas
 paths:
+  /api/salas:
+    get:
+      tags: [Salas]
+      summary: Listar salas cadastradas
+      operationId: listarSalas
+      responses:
+        '200':
+          description: Lista de salas; vazia quando não há salas cadastradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sala'
   /api/reservas:
     post:
       tags: [Reservas]
@@ -46,6 +62,21 @@ paths:
           $ref: '#/components/responses/AcessoNegado'
         '409':
           $ref: '#/components/responses/Conflito'
+  /api/reservas/pendentes:
+    get:
+      tags: [Reservas]
+      summary: Listar reservas solicitadas pendentes
+      description: Retorna somente reservas SOLICITADA ordenadas por solicitadoEm em ordem crescente.
+      operationId: listarReservasPendentes
+      responses:
+        '200':
+          description: Reservas pendentes; lista vazia quando não há solicitações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reserva'
   /api/reservas/{reservaId}:
     parameters:
       - $ref: '#/components/parameters/ReservaId'
@@ -228,6 +259,19 @@ components:
           schema:
             $ref: '#/components/schemas/Erro'
   schemas:
+    Sala:
+      type: object
+      required: [id, capacidade, statusSala]
+      properties:
+        id:
+          type: integer
+          format: int64
+        capacidade:
+          type: integer
+          minimum: 20
+        statusSala:
+          type: string
+          enum: [DISPONIVEL, RESERVADA, EM_MANUTENCAO]
     SolicitarReservaRequest:
       type: object
       required: [salaId, solicitanteId, tipoSolicitante, inicio, fim]

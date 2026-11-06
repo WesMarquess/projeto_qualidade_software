@@ -3,6 +3,7 @@ package br.com.projeto_qualidade_software.projeto.integration;
 import br.com.projeto_qualidade_software.projeto.api.ApiExceptionHandler;
 import br.com.projeto_qualidade_software.projeto.api.dto.ReservaResponse;
 import br.com.projeto_qualidade_software.projeto.api.dto.SolicitarReservaRequest;
+import br.com.projeto_qualidade_software.projeto.entities.Reserva;
 import br.com.projeto_qualidade_software.projeto.entities.Sala;
 import br.com.projeto_qualidade_software.projeto.entities.Solicitante;
 import br.com.projeto_qualidade_software.projeto.enums.StatusReserva;
@@ -13,6 +14,7 @@ import br.com.projeto_qualidade_software.projeto.repositories.SalaRepository;
 import br.com.projeto_qualidade_software.projeto.repositories.SolicitanteRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,6 +36,8 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -195,6 +199,45 @@ class ReservaApiPostgresE2ETest {
     }
 
     @Test
+    @DisplayName("CP-91 / RF12 - Filtra pendentes e ordena pela data de solicitacao")
+    void deveListarSomenteReservasSolicitadasEmOrdemDeSolicitacao() {
+        LocalDateTime solicitadaMaisAntiga = LocalDateTime.of(2030, 10, 20, 8, 0);
+        LocalDateTime solicitadaIntermediaria = solicitadaMaisAntiga.plusHours(1);
+        LocalDateTime solicitadaMaisRecente = solicitadaMaisAntiga.plusHours(2);
+        Reserva primeira = salvarReserva(StatusReserva.SOLICITADA, solicitadaMaisAntiga);
+        Reserva segunda = salvarReserva(StatusReserva.SOLICITADA, solicitadaIntermediaria);
+        Reserva terceira = salvarReserva(StatusReserva.SOLICITADA, solicitadaMaisRecente);
+        salvarReserva(StatusReserva.APROVADA, solicitadaMaisAntiga.minusHours(3));
+        salvarReserva(StatusReserva.REJEITADA, solicitadaMaisAntiga.minusHours(2));
+        salvarReserva(StatusReserva.CANCELADA, solicitadaMaisAntiga.minusHours(1));
+
+        ResponseEntity<ReservaResponse[]> resposta =
+                restTemplate.getForEntity("/api/reservas/pendentes", ReservaResponse[].class);
+
+        assertEquals(HttpStatus.OK, resposta.getStatusCode());
+        ReservaResponse[] reservas = resposta.getBody();
+        assertNotNull(reservas);
+        assertEquals(3, reservas.length);
+        assertEquals(
+                List.of(primeira.getId(), segunda.getId(), terceira.getId()),
+                Arrays.stream(reservas).map(ReservaResponse::id).toList()
+        );
+        assertTrue(Arrays.stream(reservas)
+                .allMatch(reserva -> reserva.status() == StatusReserva.SOLICITADA));
+    }
+
+    @Test
+    @DisplayName("CP-92 / RF12 - Retorna lista vazia quando não há pendências")
+    void deveRetornarListaVaziaQuandoNaoHaReservasPendentes() {
+        ResponseEntity<ReservaResponse[]> resposta =
+                restTemplate.getForEntity("/api/reservas/pendentes", ReservaResponse[].class);
+
+        assertEquals(HttpStatus.OK, resposta.getStatusCode());
+        assertNotNull(resposta.getBody());
+        assertEquals(0, resposta.getBody().length);
+    }
+
+    @Test
     void deveRetornarConflictSemPersistirSegundaReservaConflitante() {
         ResponseEntity<ReservaResponse> primeira = restTemplate.postForEntity(
                 "/api/reservas",
@@ -293,5 +336,20 @@ class ReservaApiPostgresE2ETest {
                 inicio,
                 fim
         );
+    }
+
+    private Reserva salvarReserva(StatusReserva status, LocalDateTime solicitadoEm) {
+        Reserva reserva = new Reserva(
+                null,
+                salaRepository.findById(salaId).orElseThrow(),
+                solicitanteRepository.findById(solicitanteId).orElseThrow(),
+                null,
+                INICIO,
+                FIM,
+                status,
+                solicitadoEm,
+                null
+        );
+        return reservaRepository.saveAndFlush(reserva);
     }
 }

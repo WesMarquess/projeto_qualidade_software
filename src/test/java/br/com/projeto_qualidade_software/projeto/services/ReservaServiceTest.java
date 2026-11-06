@@ -17,12 +17,14 @@ import br.com.projeto_qualidade_software.projeto.repositories.SalaRepository;
 import br.com.projeto_qualidade_software.projeto.repositories.SolicitanteRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.LocalDateTime;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,6 +67,97 @@ class ReservaServiceTest {
         administradorRepository = mock(AdministradorRepository.class);
         reservaService = new ReservaService(
                 reservaRepository,
+                salaRepository,
+                solicitanteRepository,
+                responsavelRepository,
+                administradorRepository
+        );
+    }
+
+    @Test
+    @DisplayName("CB-60 / RF12 - Lista reservas solicitadas ordenadas pelo repository")
+    void listarReservasPendentesUsaConsultaOrdenadaPorDataSolicitacao() {
+        List<Reserva> pendentes = List.of(new Reserva(), new Reserva());
+        when(reservaRepository.findByStatusOrderBySolicitadoEmAsc(
+                StatusReserva.SOLICITADA
+        )).thenReturn(pendentes);
+
+        assertEquals(pendentes, reservaService.listarReservasPendentes());
+
+        verify(reservaRepository).findByStatusOrderBySolicitadoEmAsc(
+                StatusReserva.SOLICITADA
+        );
+        verifyNoInteractions(
+                salaRepository,
+                solicitanteRepository,
+                responsavelRepository,
+                administradorRepository
+        );
+    }
+
+    @Test
+    void buscarReservaExistenteRetornaReservaEncontrada() {
+        Reserva reserva = new Reserva();
+        when(reservaRepository.findById(RESERVA_ID)).thenReturn(Optional.of(reserva));
+
+        assertSame(reserva, reservaService.buscarReserva(RESERVA_ID));
+
+        verify(reservaRepository).findById(RESERVA_ID);
+        verifyNoInteractions(
+                salaRepository,
+                solicitanteRepository,
+                responsavelRepository,
+                administradorRepository
+        );
+    }
+
+    @Test
+    void buscarReservaInexistenteLancaEntityNotFoundException() {
+        when(reservaRepository.findById(RESERVA_ID)).thenReturn(Optional.empty());
+
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> reservaService.buscarReserva(RESERVA_ID)
+        );
+
+        verify(reservaRepository).findById(RESERVA_ID);
+        verifyNoInteractions(
+                salaRepository,
+                solicitanteRepository,
+                responsavelRepository,
+                administradorRepository
+        );
+    }
+
+    @Test
+    void listarReservasDoSolicitanteComResultadosRetornaReservasDoRepositorio() {
+        List<Reserva> reservas = List.of(new Reserva(), new Reserva());
+        when(reservaRepository.findBySolicitanteIdOrderByInicioDesc(SOLICITANTE_ID))
+                .thenReturn(reservas);
+
+        assertSame(reservas, reservaService.listarReservasDoSolicitante(SOLICITANTE_ID));
+
+        verify(reservaRepository).findBySolicitanteIdOrderByInicioDesc(SOLICITANTE_ID);
+        verifyNoInteractions(
+                salaRepository,
+                solicitanteRepository,
+                responsavelRepository,
+                administradorRepository
+        );
+    }
+
+    @Test
+    void listarReservasDoSolicitanteSemResultadosRetornaListaVazia() {
+        when(reservaRepository.findBySolicitanteIdOrderByInicioDesc(SOLICITANTE_ID))
+                .thenReturn(List.of());
+
+        assertEquals(
+                List.of(),
+                reservaService.listarReservasDoSolicitante(SOLICITANTE_ID)
+        );
+
+        verify(reservaRepository).findBySolicitanteIdOrderByInicioDesc(SOLICITANTE_ID);
+        verifyNoInteractions(
                 salaRepository,
                 solicitanteRepository,
                 responsavelRepository,
