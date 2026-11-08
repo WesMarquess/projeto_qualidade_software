@@ -176,6 +176,16 @@ public class ReservaService {
         return reservaRepository.findBySolicitanteIdOrderByInicioDesc(solicitanteId);
     }
 
+    @Transactional(readOnly = true)
+    public List<Reserva> listarReservas(StatusReserva status) {
+        return reservaRepository.findByStatusOrderBySolicitadoEmAsc(status);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Reserva> listarReservasPendentes() {
+        return listarReservas(StatusReserva.SOLICITADA);
+    }
+
     private Reserva buscarReservaBloqueada(Long reservaId) {
         return reservaRepository.buscarPorIdComBloqueio(reservaId)
                 .orElseThrow(() -> new EntityNotFoundException(

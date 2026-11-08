@@ -10,7 +10,7 @@ Desenvolver e validar uma aplicacao para organizar a alocacao de salas, professo
 
 ## Contexto
 
-O projeto e academico e ainda nao existe uma aplicacao para esse processo. A especificacao da disciplina exige demonstrar nao apenas funcionamento, mas tambem qualidade, seguranca, rastreabilidade e desempenho. Os requisitos deste PRD sao derivados da especificacao fornecida e das responsabilidades de perfil confirmadas pelo solicitante.
+O projeto e academico e ja possui uma aplicacao executavel com interface web e backend de reservas. O frontend consulta salas e reservas pela API e envia solicitacoes, alteracoes, cancelamentos e decisoes ao servidor. A especificacao da disciplina exige demonstrar nao apenas funcionamento, mas tambem qualidade, seguranca, rastreabilidade e desempenho. Os requisitos deste PRD sao derivados da especificacao fornecida e das responsabilidades de perfil confirmadas pelo solicitante.
 
 ## Perfis
 
@@ -34,7 +34,7 @@ Detalhes, jornadas e permissoes: [personas](prd/personas/).
 
 ## Situacao atual do backend
 
-O backend existente e um recorte inicial de reservas de salas, nao a implementacao completa deste escopo. Na solicitacao, valida se `tipoSolicitante` (`PROFESSOR`/`COORDENADOR`) corresponde ao cadastro; decisoes aceitam `RESPONSAVEL`/`ADMINISTRADOR` com ID existente e registram o decisor. Isso nao substitui autenticacao: IDs e papeis enviados pelo cliente ainda podem ser falsificados. A protecao concorrente usa bloqueio pessimista e ainda precisa de teste de integracao. Recursos restritos, conflitos de professor/material, auditoria, ciclo completo de estados, manutencao por periodo, movimentacao de materiais e operacoes administrativas continuam pendentes. Consulte a [matriz de implementacao dos requisitos](requisitos-funcionais.md#situacao-da-implementacao-atual) e a [documentacao da API](../api-reservas.md).
+O backend e o frontend estao integrados para consulta de salas e operacoes de reserva, mas o sistema ainda e um recorte do escopo total. Na solicitacao, o backend valida se `tipoSolicitante` (`PROFESSOR`/`COORDENADOR`) corresponde ao cadastro; decisoes aceitam `RESPONSAVEL`/`ADMINISTRADOR` com ID existente e registram o decisor. Isso nao substitui autenticacao: IDs e papeis enviados pelo cliente ainda podem ser falsificados. A protecao concorrente usa bloqueio pessimista e ainda precisa de teste de integracao. Recursos restritos, conflitos de professor/material, auditoria, ciclo completo de estados, manutencao por periodo, movimentacao de materiais e operacoes administrativas continuam pendentes. Consulte a [matriz de implementacao dos requisitos](requisitos-funcionais.md#situacao-da-implementacao-atual) e a [documentacao da API](../api-reservas.md).
 
 ## Criterios academicos de sucesso
 

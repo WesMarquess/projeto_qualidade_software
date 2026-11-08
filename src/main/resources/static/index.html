@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#073a63">
-  <meta name="description" content="Painel demonstrativo para consulta e gestão de reservas de salas.">
+  <meta name="description" content="Portal para consultar salas e gerenciar reservas universitárias.">
   <title>Salas SENAC | Gestão de espaços</title>
   <link rel="stylesheet" href="css/app.css">
   <script src="js/reservation-rules.js" defer></script>
+  <script src="js/reservation-api.js" defer></script>
   <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -42,8 +43,8 @@
       <div class="sidebar-note">
         <span class="note-indicator" aria-hidden="true"></span>
         <div>
-          <strong>Ambiente demonstrativo</strong>
-          <span>Dados desta sessão não são persistidos.</span>
+          <strong>Dados do servidor</strong>
+          <span>Reservas são persistidas pela API.</span>
         </div>
       </div>
       <div class="sidebar-footer">
@@ -60,12 +61,15 @@
           <span id="active-profile-label">Solicitante</span>
         </div>
         <div class="topbar-meta">
-          <span class="demo-badge"><span aria-hidden="true"></span> Protótipo local</span>
+          <span class="demo-badge"><span aria-hidden="true"></span> API do servidor</span>
+          <span id="identity-summary" class="topbar-date">IDs não configurados</span>
+          <button class="button button-quiet button-small" id="configure-identity" type="button">Configurar IDs</button>
           <span class="topbar-date" id="today-label"></span>
         </div>
       </header>
 
       <main class="page-content">
+        <div id="connection-status" aria-live="polite"></div>
         <div id="app-content"></div>
       </main>
     </div>
@@ -107,6 +111,48 @@
       <div class="modal-actions">
         <button class="button button-quiet" type="button" data-close-dialog>Voltar</button>
         <button class="button button-primary" id="reservation-submit" type="submit">Enviar solicitação</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="identity-dialog" aria-labelledby="identity-title">
+    <form id="identity-form" class="modal-card">
+      <div class="modal-heading">
+        <div>
+          <span class="eyebrow">CONFIGURAÇÃO DA SESSÃO</span>
+          <h2 id="identity-title">IDs cadastrados na API</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-identity aria-label="Fechar janela">×</button>
+      </div>
+      <p class="modal-description">Informe os IDs existentes no banco para executar as operações. Estes campos não autenticam nem verificam a identidade de quem usa o navegador.</p>
+      <div class="form-grid">
+        <label class="field">
+          <span>ID do solicitante</span>
+          <input id="identity-applicant-id" type="number" min="1" step="1" inputmode="numeric">
+        </label>
+        <label class="field">
+          <span>Tipo do solicitante</span>
+          <select id="identity-applicant-type">
+            <option value="PROFESSOR">Professor</option>
+            <option value="COORDENADOR">Coordenador</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>ID do responsável</span>
+          <input id="identity-responsible-id" type="number" min="1" step="1" inputmode="numeric">
+        </label>
+        <label class="field">
+          <span>ID do administrador</span>
+          <input id="identity-administrator-id" type="number" min="1" step="1" inputmode="numeric">
+        </label>
+      </div>
+      <div class="info-banner">
+        <span class="info-icon" aria-hidden="true">!</span>
+        <span>A API ainda não autentica usuários. Use apenas em ambiente de desenvolvimento ou demonstração.</span>
+      </div>
+      <div class="modal-actions">
+        <button class="button button-quiet" type="button" data-close-identity>Cancelar</button>
+        <button class="button button-primary" type="submit">Salvar configuração</button>
       </div>
     </form>
   </dialog>

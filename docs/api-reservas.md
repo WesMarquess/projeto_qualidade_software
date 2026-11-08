@@ -1,14 +1,14 @@
 # API de Reservas
 
 **Status:** Implementacao inicial
-**Versao do contrato:** 1.0.0
+**Versao do contrato:** 1.1.0
 **Contrato OpenAPI:** [openapi.yaml](openapi.yaml)
 
 ## Escopo
 
-A API expoe os fluxos de reserva implementados para salas: solicitacao, consulta, listagem por solicitante, alteracao de horario, cancelamento, aprovacao e rejeicao. O contrato OpenAPI pode ser aberto no Swagger Editor ou carregado por uma instalacao Swagger UI.
+A API expoe a consulta de salas e os fluxos de reserva implementados: solicitacao, consulta, listagem filtrada por estado ou solicitante, alteracao de horario, cancelamento, aprovacao e rejeicao. O frontend servido pelo Spring Boot usa essas rotas; os dados apresentados sao lidos e gravados no backend, nao em uma lista local. O contrato OpenAPI pode ser aberto no Swagger Editor ou carregado por uma instalacao Swagger UI.
 
-O projeto ainda nao possui arquivo Maven/Gradle nem configuracao do Springdoc. Portanto, este contrato documenta a API no formato consumido pelo Swagger, mas a interface Swagger UI nao esta publicada pela aplicacao.
+O repositorio possui configuracao Maven e aplicacao Spring Boot. A interface Swagger UI, entretanto, nao esta publicada pela aplicacao porque o Springdoc ainda nao foi configurado; este contrato pode ser aberto no Swagger Editor ou carregado por uma instalacao Swagger UI.
 
 ## Validacao das regras de negocio
 
@@ -31,6 +31,9 @@ Na criacao, o payload precisa incluir `tipoSolicitante` (`PROFESSOR` ou `COORDEN
 
 | Metodo | Rota | Finalidade | Sucesso |
 |---|---|---|---|
+| `GET` | `/api/salas` | Listar salas cadastradas | `200 OK` |
+| `GET` | `/api/reservas?status=SOLICITADA` | Listar reservas pelo estado | `200 OK` |
+| `GET` | `/api/reservas/pendentes` | Listar solicitações pendentes (`SOLICITADA`) | `200 OK` |
 | `POST` | `/api/reservas` | Solicitar reserva | `201 Created` |
 | `GET` | `/api/reservas/{reservaId}` | Consultar reserva | `200 OK` |
 | `GET` | `/api/reservas/solicitante/{solicitanteId}` | Listar reservas do solicitante | `200 OK` |
@@ -38,6 +41,21 @@ Na criacao, o payload precisa incluir `tipoSolicitante` (`PROFESSOR` ou `COORDEN
 | `POST` | `/api/reservas/{reservaId}/cancelamento` | Cancelar reserva solicitada ou aprovada | `200 OK` |
 | `POST` | `/api/reservas/{reservaId}/aprovacao` | Aprovar reserva solicitada | `200 OK` |
 | `POST` | `/api/reservas/{reservaId}/rejeicao` | Rejeitar reserva solicitada | `200 OK` |
+
+A tela do Solicitante consulta a listagem por `solicitanteId`; a fila do Responsavel/Administrador consulta `GET /api/reservas?status=SOLICITADA`. O navegador precisa ser servido pela mesma aplicacao/origem da API para usar o caminho relativo `/api`.
+
+Exemplo de consulta da fila:
+
+```http
+GET /api/reservas?status=SOLICITADA
+Accept: application/json
+```
+
+`status` e obrigatorio em `GET /api/reservas` e aceita somente os valores do enum `StatusReserva`. A resposta contem os campos da reserva e o ID do solicitante, sem dados pessoais do cadastro.
+
+## Integracao do frontend
+
+O frontend carrega salas e solicitacoes pendentes do servidor e envia as operacoes de reserva pelas rotas documentadas. Para operar, configure no botao **Configurar IDs** os identificadores existentes do solicitante e do Responsavel ou Administrador. Essa configuracao fica no `localStorage` do navegador. Os IDs enviados pelo cliente nao autenticam o usuario; use apenas em ambiente de desenvolvimento/demonstracao ate existir autenticacao real. A tela de Administrador e somente leitura porque a API ainda nao oferece rotas de gestao de salas.
 
 ## Exemplos
 
@@ -104,8 +122,8 @@ Os erros retornam JSON no formato `{"mensagem":"..."}`.
 | Status | Significado |
 |---|---|
 | `400 Bad Request` | Corpo invalido, campos obrigatorios ausentes ou intervalo incorreto |
-| `404 Not Found` | Reserva, sala, solicitante ou responsavel inexistente |
-| `403 Forbidden` | Cargo informado nao corresponde ao tipo salvo para o solicitante |
+| `404 Not Found` | Reserva, sala, solicitante, responsavel ou administrador inexistente |
+| `403 Forbidden` | Tipo de solicitante nao corresponde ao cadastro ou solicitante informado nao corresponde a reserva |
 | `409 Conflict` | Sobreposicao de horario ou estado que nao permite a operacao |
 
 O intervalo exige `fim` posterior a `inicio`. Reservas solicitadas, aprovadas ou em uso ocupam a sala; salas indisponiveis nao aceitam novas solicitacoes.

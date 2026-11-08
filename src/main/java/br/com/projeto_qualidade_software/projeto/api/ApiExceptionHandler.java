@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -49,6 +51,22 @@ public class ApiExceptionHandler {
     public ResponseEntity<ErroResponse> tratarCorpoInvalido(HttpMessageNotReadableException exception) {
         return ResponseEntity.badRequest()
                 .body(new ErroResponse("O corpo da requisição está ausente ou malformado."));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErroResponse> tratarParametroInvalido(
+            MethodArgumentTypeMismatchException exception
+    ) {
+        return ResponseEntity.badRequest()
+                .body(new ErroResponse("O parâmetro informado é inválido."));
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErroResponse> tratarParametroAusente(
+            MissingServletRequestParameterException exception
+    ) {
+        return ResponseEntity.badRequest()
+                .body(new ErroResponse("O parâmetro " + exception.getParameterName() + " é obrigatório."));
     }
 
     public record ErroResponse(String mensagem) {

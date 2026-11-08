@@ -36,12 +36,26 @@ sequenceDiagram
     participant APP as Aplicacao
     participant AGENDA as Agenda de recursos
 
-    S1->>APP: Solicita recurso R no intervalo T
-    S2->>APP: Solicita recurso R no intervalo T
-    APP->>AGENDA: Revalida disponibilidade no momento de confirmar
-    AGENDA-->>APP: Uma solicitacao obtem o recurso; a outra encontra conflito
-    APP-->>S1: Retorna confirmacao ou estado definido pela aprovacao
-    APP-->>S2: Recusa a solicitacao conflitante e informa indisponibilidade
+    par Solicitacoes simultaneas
+        S1->>APP: Solicita recurso R no intervalo T
+    and
+        S2->>APP: Solicita recurso R no intervalo T
+    end
+    alt Solicitacao de A processada primeiro
+        APP->>AGENDA: Valida e registra a solicitacao de A
+        AGENDA-->>APP: A aceita
+        APP->>AGENDA: Valida a solicitacao de B
+        AGENDA-->>APP: B conflita com a reserva de A
+        APP-->>S1: Confirma a solicitacao de A
+        APP-->>S2: Recusa a solicitacao conflitante de B
+    else Solicitacao de B processada primeiro
+        APP->>AGENDA: Valida e registra a solicitacao de B
+        AGENDA-->>APP: B aceita
+        APP->>AGENDA: Valida a solicitacao de A
+        AGENDA-->>APP: A conflita com a reserva de B
+        APP-->>S2: Confirma a solicitacao de B
+        APP-->>S1: Recusa a solicitacao conflitante de A
+    end
 ```
 
 O mecanismo interno de concorrencia nao e prescrito neste documento; o criterio e nao aceitar duas reservas conflitantes. A suite de testes deve provar o comportamento com solicitacoes simultaneas.

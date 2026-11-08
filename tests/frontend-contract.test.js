@@ -205,22 +205,45 @@ test("room maintenance stays blocked while other room states follow active reser
   );
 });
 
-test("Spring Boot static entry point loads local assets without backend calls", () => {
+test("Spring Boot static entry point loads the frontend and reservation API client", () => {
   const html = readProjectFile("src/main/resources/static/index.html");
   const app = readProjectFile("src/main/resources/static/js/app.js");
   const styles = readProjectFile("src/main/resources/static/css/app.css");
 
   assert.match(html, /css\/app\.css/);
   assert.match(html, /js\/reservation-rules\.js/);
+  assert.match(html, /js\/reservation-api\.js/);
   assert.match(html, /js\/app\.js/);
   assert.match(html, /data-profile="solicitante"/);
   assert.match(html, /data-profile="responsavel"/);
   assert.match(html, /data-profile="administrador"/);
+  assert.match(html, /Configurar IDs/);
+  assert.match(html, /não autenticam nem verificam a identidade/);
   assert.match(app, /EM_MANUTENCAO/);
   assert.match(app, /approve-reservation/);
   assert.match(app, /reject-reservation/);
   assert.match(app, /edit-reservation/);
   assert.match(app, /cancel-reservation/);
-  assert.doesNotMatch(app, /\bfetch\s*\(|XMLHttpRequest/);
+  assert.match(app, /ReservationApi\.listRooms/);
+  assert.match(app, /ReservationApi\.createReservation/);
+  assert.match(app, /ReservationApi\.changeSchedule/);
+  assert.match(app, /ReservationApi\.cancelReservation/);
+  assert.match(app, /ReservationApi\.decideReservation/);
+  assert.doesNotMatch(app, /Marina Alves|RSV-204/);
   assert.match(styles, /@media \(max-width: 760px\)/);
+});
+
+test("backend exposes the read endpoints consumed by the frontend", () => {
+  const salaController = readProjectFile(
+    "src/main/java/br/com/projeto_qualidade_software/projeto/api/SalaController.java",
+  );
+  const reservaController = readProjectFile(
+    "src/main/java/br/com/projeto_qualidade_software/projeto/api/ReservaController.java",
+  );
+
+  assert.match(salaController, /@RequestMapping\("\/api\/salas"\)/);
+  assert.match(salaController, /@GetMapping/);
+  assert.match(salaController, /salaService\.listarSalas\(\)/);
+  assert.match(reservaController, /@RequestParam\("status"\) StatusReserva status/);
+  assert.match(reservaController, /listarReservas\(status\)/);
 });

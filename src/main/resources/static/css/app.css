@@ -314,6 +314,13 @@ select:focus-visible {
   font-size: 11px;
 }
 
+#identity-summary {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .demo-badge {
   display: inline-flex;
   align-items: center;
@@ -904,6 +911,14 @@ select:focus-visible {
   line-height: 1.55;
 }
 
+.info-banner.is-error {
+  align-items: center;
+  justify-content: space-between;
+  border-color: #efc7c4;
+  color: var(--red-700);
+  background: var(--red-100);
+}
+
 .info-banner strong {
   color: #764800;
 }
@@ -1194,11 +1209,14 @@ select:focus-visible {
   }
 
   .demo-badge {
-    padding: 6px 8px;
-    font-size: 9px;
+    display: none;
   }
 
   .topbar-date {
+    display: none;
+  }
+
+  #identity-summary {
     display: none;
   }
 

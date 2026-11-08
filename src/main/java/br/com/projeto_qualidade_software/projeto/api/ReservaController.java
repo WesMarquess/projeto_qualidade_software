@@ -5,6 +5,7 @@ import br.com.projeto_qualidade_software.projeto.api.dto.AlterarHorarioReservaRe
 import br.com.projeto_qualidade_software.projeto.api.dto.DecisaoReservaRequest;
 import br.com.projeto_qualidade_software.projeto.api.dto.ReservaResponse;
 import br.com.projeto_qualidade_software.projeto.api.dto.SolicitarReservaRequest;
+import br.com.projeto_qualidade_software.projeto.enums.StatusReserva;
 import br.com.projeto_qualidade_software.projeto.services.ReservaService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +51,24 @@ public class ReservaController {
     @GetMapping("/solicitante/{solicitanteId}")
     public List<ReservaResponse> listarDoSolicitante(@PathVariable Long solicitanteId) {
         return reservaService.listarReservasDoSolicitante(solicitanteId)
+                .stream()
+                .map(ReservaResponse::de)
+                .toList();
+    }
+
+    @GetMapping
+    public List<ReservaResponse> listar(
+            @RequestParam("status") StatusReserva status
+    ) {
+        return reservaService.listarReservas(status)
+                .stream()
+                .map(ReservaResponse::de)
+                .toList();
+    }
+
+    @GetMapping("/pendentes")
+    public List<ReservaResponse> listarPendentes() {
+        return reservaService.listarReservasPendentes()
                 .stream()
                 .map(ReservaResponse::de)
                 .toList();
