@@ -37,6 +37,7 @@ Na criacao, o payload precisa incluir `tipoSolicitante` (`PROFESSOR` ou `COORDEN
 | `POST` | `/api/reservas` | Solicitar reserva | `201 Created` |
 | `GET` | `/api/reservas/{reservaId}` | Consultar reserva | `200 OK` |
 | `GET` | `/api/reservas/solicitante/{solicitanteId}` | Listar reservas do solicitante | `200 OK` |
+| `GET` | `/api/reservas/pendentes` | Listar reservas `SOLICITADA`, ordenadas por data da solicitação crescente | `200 OK` |
 | `PUT` | `/api/reservas/{reservaId}/horario` | Alterar horario enquanto solicitada | `200 OK` |
 | `POST` | `/api/reservas/{reservaId}/cancelamento` | Cancelar reserva solicitada ou aprovada | `200 OK` |
 | `POST` | `/api/reservas/{reservaId}/aprovacao` | Aprovar reserva solicitada | `200 OK` |

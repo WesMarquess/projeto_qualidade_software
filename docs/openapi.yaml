@@ -11,6 +11,8 @@ servers:
   - url: http://localhost:8080
     description: Ambiente local
 tags:
+  - name: Salas
+    description: Consulta de salas cadastradas
   - name: Reservas
     description: Solicitacao, consulta e decisao de reservas
 paths:
@@ -90,6 +92,21 @@ paths:
           $ref: '#/components/responses/AcessoNegado'
         '409':
           $ref: '#/components/responses/Conflito'
+  /api/reservas/pendentes:
+    get:
+      tags: [Reservas]
+      summary: Listar reservas solicitadas pendentes
+      description: Retorna somente reservas SOLICITADA ordenadas por solicitadoEm em ordem crescente.
+      operationId: listarReservasPendentes
+      responses:
+        '200':
+          description: Reservas pendentes; lista vazia quando não há solicitações
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reserva'
   /api/reservas/{reservaId}:
     parameters:
       - $ref: '#/components/parameters/ReservaId'

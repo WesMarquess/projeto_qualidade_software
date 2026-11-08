@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: reservas_carga
+      POSTGRES_USER: reservas_carga
+      POSTGRES_PASSWORD: reservas_carga_local
+    ports:
+      - "5434:5432"

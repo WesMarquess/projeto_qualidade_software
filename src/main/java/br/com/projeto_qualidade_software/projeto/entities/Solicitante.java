@@ -3,7 +3,6 @@ package br.com.projeto_qualidade_software.projeto.entities;
 import br.com.projeto_qualidade_software.projeto.enums.TipoSolicitante;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import org.hibernate.validator.constraints.UniqueElements;
 
 import java.time.LocalDate;
 
@@ -18,7 +17,7 @@ public class Solicitante {
     private String name;
 
     @Email
-    @UniqueElements
+    @Column(unique = true)
     private String email;
 
     private String password;
